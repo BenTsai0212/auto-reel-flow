@@ -1,0 +1,87 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["director_id", "wordsmith_id", "project_id", "story_arc", "total_duration_est", "scenes", "global_av_profile"],
+  "properties": {
+    "director_id": { "type": "string" },
+    "wordsmith_id": { "type": "string" },
+    "project_id": { "type": "string" },
+    "story_arc": { "type": "string", "enum": ["suspense", "emotional"] },
+    "total_duration_est": { "type": "string" },
+    "scenes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["segment_id", "role", "intensity", "duration_est", "audio", "visual", "sync"],
+        "properties": {
+          "segment_id": { "type": "integer" },
+          "role": { "type": "string" },
+          "intensity": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+          "duration_est": { "type": "string" },
+          "audio": {
+            "type": "object",
+            "required": ["voice_script", "tts_params", "sfx", "bgm"],
+            "properties": {
+              "voice_script": { "type": "string" },
+              "tts_params": { "type": "object" },
+              "sfx": { "type": ["string", "null"] },
+              "bgm": {
+                "type": "object",
+                "required": ["mood", "volume_duck", "fade_in"],
+                "properties": {
+                  "mood": { "type": "string" },
+                  "volume_duck": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+                  "fade_in": { "type": "string" }
+                }
+              }
+            }
+          },
+          "visual": {
+            "type": "object",
+            "required": ["prompt", "mood_tag", "shot_type", "color_grade", "motion", "cut_timing"],
+            "properties": {
+              "prompt": { "type": "string", "minLength": 1 },
+              "mood_tag": { "type": "string" },
+              "shot_type": {
+                "type": "string",
+                "enum": ["extreme_close_up", "medium_shot", "wide_shot", "dynamic_cut"]
+              },
+              "color_grade": {
+                "type": "string",
+                "enum": ["muted_warm", "cold_desaturated", "high_contrast"]
+              },
+              "motion": {
+                "type": "string",
+                "enum": ["static", "slow_push_in", "dynamic_cut"]
+              },
+              "cut_timing": {
+                "type": "string",
+                "enum": ["on_pause", "on_beat", "on_sentence"]
+              }
+            }
+          },
+          "sync": {
+            "type": "object",
+            "required": ["cut_trigger", "cut_at_second", "subtitle_style"],
+            "properties": {
+              "cut_trigger": { "type": "string", "enum": ["pause", "beat", "sentence_end"] },
+              "cut_at_second": { "type": "number", "minimum": 0.0 },
+              "subtitle_style": { "type": "string", "enum": ["minimal_fade", "bold_reveal"] }
+            }
+          }
+        }
+      }
+    },
+    "global_av_profile": {
+      "type": "object",
+      "required": ["color_grade_arc", "bgm_arc", "subtitle_font_style", "aspect_ratio"],
+      "properties": {
+        "color_grade_arc": { "type": "array", "items": { "type": "string" } },
+        "bgm_arc": { "type": "array", "items": { "type": "string" } },
+        "subtitle_font_style": { "type": "string" },
+        "aspect_ratio": { "type": "string", "enum": ["9:16"] }
+      }
+    }
+  }
+}

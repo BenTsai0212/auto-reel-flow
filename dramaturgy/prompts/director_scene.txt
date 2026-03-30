@@ -1,0 +1,58 @@
+請根據以下資訊，產出完整的 Director Contract。
+
+Wordsmith Contract：
+{{wordsmith_contract}}
+
+Architect Contract：
+{{architect_contract}}
+
+Premise dominant_tone：{{dominant_tone}}
+Project ID：{{project_id}}
+
+輸出格式：
+{
+  "director_id": "dir_<uuid前8碼>",
+  "wordsmith_id": "<來自 Wordsmith 的 wordsmith_id>",
+  "project_id": "{{project_id}}",
+  "story_arc": "<suspense|emotional>",
+  "total_duration_est": "<所有幕加總>",
+  "scenes": [
+    {
+      "segment_id": 1,
+      "role": "<來自 Wordsmith>",
+      "intensity": <來自 Wordsmith>,
+      "duration_est": "<來自 Wordsmith，誤差 < 0.1s>",
+      "audio": {
+        "voice_script": "<來自 Wordsmith 的 annotated 版本>",
+        "tts_params": {<來自 Wordsmith 的 tts_params>},
+        "sfx": "<音效描述或 null>",
+        "bgm": {
+          "mood": "<氛圍描述>",
+          "volume_duck": <0.0–1.0>,
+          "fade_in": "<如 '0.5s'>"
+        }
+      },
+      "visual": {
+        "prompt": "<英文 Pexels 搜尋關鍵字，必須包含 shot_type 關鍵字>",
+        "mood_tag": "<視覺情緒標籤>",
+        "shot_type": "<extreme_close_up|medium_shot|wide_shot|dynamic_cut>",
+        "color_grade": "<muted_warm|cold_desaturated|high_contrast>",
+        "motion": "<static|slow_push_in|dynamic_cut>",
+        "cut_timing": "<on_pause|on_beat|on_sentence>"
+      },
+      "sync": {
+        "cut_trigger": "<pause|beat|sentence_end>",
+        "cut_at_second": <浮點數>,
+        "subtitle_style": "<minimal_fade|bold_reveal>"
+      }
+    }
+  ],
+  "global_av_profile": {
+    "color_grade_arc": ["<每幕的 color_grade，陣列長度等於 scenes 數量>"],
+    "bgm_arc": ["<每幕的 bgm mood，陣列長度等於 scenes 數量>"],
+    "subtitle_font_style": "<字型描述>",
+    "aspect_ratio": "9:16"
+  }
+}
+
+請只輸出符合 schema 的 JSON，不含任何前言、說明文字或 markdown 代碼塊。

@@ -1,0 +1,68 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["wordsmith_id", "architect_id", "scenes", "global_language_profile"],
+  "properties": {
+    "wordsmith_id": { "type": "string" },
+    "architect_id": { "type": "string" },
+    "scenes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["segment_id", "role", "emotional_target", "intensity", "voice_script", "language_markers", "tts_params", "naturalness_score", "duration_est"],
+        "properties": {
+          "segment_id": { "type": "integer" },
+          "role": { "type": "string" },
+          "emotional_target": { "type": "string" },
+          "intensity": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+          "voice_script": {
+            "type": "object",
+            "required": ["raw", "annotated"],
+            "properties": {
+              "raw": { "type": "string", "minLength": 1 },
+              "annotated": { "type": "string", "minLength": 1 }
+            }
+          },
+          "language_markers": {
+            "type": "object",
+            "required": ["oral_hooks", "pause_count", "avg_sentence_length", "rhetorical_device"],
+            "properties": {
+              "oral_hooks": { "type": "array", "items": { "type": "string" } },
+              "pause_count": { "type": "integer", "minimum": 0 },
+              "avg_sentence_length": { "type": "integer", "minimum": 1 },
+              "rhetorical_device": {
+                "type": "string",
+                "enum": ["rhetorical_question", "preemptive_defense", "contrast_pivot", "concrete_anchor", "second_person_mirror", "open_loop"]
+              }
+            }
+          },
+          "tts_params": {
+            "type": "object",
+            "required": ["stability", "similarity_boost", "style", "speaking_rate"],
+            "properties": {
+              "stability": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+              "similarity_boost": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+              "style": {
+                "type": "string",
+                "enum": ["intimate_whisper", "measured_serious", "revelatory_rising", "grounded_warm", "urgent_direct"]
+              },
+              "speaking_rate": { "type": "number", "minimum": 0.7, "maximum": 1.2 }
+            }
+          },
+          "naturalness_score": { "type": ["integer", "null"] },
+          "duration_est": { "type": "string" }
+        }
+      }
+    },
+    "global_language_profile": {
+      "type": "object",
+      "required": ["dominant_tone", "forbidden_phrases", "signature_transitions"],
+      "properties": {
+        "dominant_tone": { "type": "string", "minLength": 1 },
+        "forbidden_phrases": { "type": "array", "items": { "type": "string" } },
+        "signature_transitions": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

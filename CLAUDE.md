@@ -9,6 +9,8 @@
 
 **當前階段**：技術驗證（Phase 1–4），優先確保 Pipeline 穩定，再考慮量產優化。
 
+**開發策略**：採分階段 MVP，由劇本驗證出發，逐步擴展至音軌與完整影片輸出。詳見「MVP 分階段策略」章節。
+
 **技術選型**：
 - LLM：Claude API（claude-sonnet-4-20250514）
 - TTS：ElevenLabs API
@@ -594,3 +596,118 @@ PEXELS_API_KEY=...
 6. **FFmpeg 使用 subprocess 呼叫**，不使用 MoviePy。如遇到 FFmpeg 指令問題，優先查 FFmpeg 文件而不是換用 MoviePy。
 
 7. **輸出檔案統一存放 `outputs/` 下對應子目錄**，每次執行以 `project_id` 建立子資料夾隔離。
+
+8. **前端介面（`app.py`）只呼叫 pipeline 函式**，不包含業務邏輯。業務邏輯集中於 `dramaturgy/` 模組。
+
+---
+
+## MVP 分階段策略
+
+採三個遞進版本，每個版本都是可獨立驗證的完整里程碑。
+
+### MVP-1：劇本品質驗證（當前目標）
+
+**範圍**：只實作劇本設計層，不碰執行層。
+
+```
+hardcoded input → Premise → Architect → Wordsmith → Director → JSON Contract + raw script
+```
+
+**省略項目**：
+- Trend Scraper（改用固定測試資料）
+- Audio / Visual Pipeline（完全不實作）
+- FFmpeg Composer（完全不實作）
+- Validator 的 LLM 語意判斷（force_a vs force_b 相似度）→ 暫跳過，其餘用 Python 實作
+
+**成功標準**：
+- 人工閱讀 `voice_script.raw`，語感自然，不像 AI 寫的
+- 情緒曲線（intensity）有明顯起伏
+- `naturalness_score` 全幕 ≥ 70
+
+### MVP-2：音軌生成驗證
+
+**範圍**：在 MVP-1 基礎上接上 TTS + Whisper。
+
+```
+Director Contract → ElevenLabs TTS → 合併音檔 → Whisper 對齊 → subtitle.srt
+```
+
+**省略項目**：Visual Pipeline、FFmpeg（只有音檔）、BGM Ducking（先簡化或略過）
+
+**成功標準**：語音播放自然、停頓位置正確、字幕時間軸誤差 < ±0.5s
+
+### MVP-3：端到端出影片
+
+**範圍**：在 MVP-2 基礎上加入視覺素材與 FFmpeg 合成。
+
+```
++ Pexels 素材搜尋 → 裁切 → FFmpeg 合成 → output.mp4
+```
+
+**省略項目**：color_grade 過濾（先用 prompt 搜尋代替）、BGM（先用靜音或固定測試 BGM）
+
+**成功標準**：影片可完整播放、字幕對齊、無黑屏
+
+---
+
+## 前端介面規格（Streamlit）
+
+### 定位
+
+`app.py` 是**內部驗證工具**，非產品介面。核心目的：觸發 Pipeline、逐層審閱 Agent 輸出、進行人工品質評估。
+
+### 技術選型
+
+**Streamlit**（Python 原生，與技術棧一致）
+
+- `st.json()` 顯示 Contract 原始輸出
+- `st.tabs()` 分層顯示各 Agent 結果
+- `st.progress()` 顯示 Pipeline 執行進度
+- `st.metric()` 顯示 naturalness_score 等關鍵指標
+
+### 架構原則
+
+```
+main.py     ← CLI 入口（無 UI 依賴）
+app.py      ← Streamlit 介面（只呼叫 pipeline 函式）
+dramaturgy/ ← 業務邏輯（不知道 UI 存在）
+```
+
+### 介面佈局（MVP-1）
+
+```
+┌──────────────────────────────────────────────────────┐
+│ 側邊欄                                                 │
+│  - 輸入欄位：title / summary / keywords /             │
+│              engagement_score                         │
+│  - [執行 Pipeline] 按鈕                                │
+│  - Pipeline 進度：Premise ✓ → Architect ✓ → ...       │
+├──────────────────────────────────────────────────────┤
+│ 主區域（4 個 Tab）                                      │
+│                                                      │
+│  [Premise] [Architect] [Wordsmith] [Director]        │
+│                                                      │
+│  每個 Tab 顯示：                                       │
+│  - Validator 通過 / 失敗狀態（綠 / 紅）                 │
+│  - 原始 JSON（可展開）                                  │
+│                                                      │
+│  Wordsmith Tab 額外顯示：                              │
+│  - 每幕 voice_script.raw（大字、易閱讀）                │
+│  - naturalness_score（彩色 metric）                    │
+│  - 情緒曲線圖（各幕 intensity bar chart）               │
+└──────────────────────────────────────────────────────┘
+```
+
+### MVP-2 追加
+- 每幕音訊播放器（`st.audio()`）
+- 估算時長 vs 實際時長對比表
+
+### MVP-3 追加
+- 影片播放器（`st.video()`）
+- FFmpeg 合成 log 顯示
+
+### 啟動方式
+
+```bash
+streamlit run app.py
+```

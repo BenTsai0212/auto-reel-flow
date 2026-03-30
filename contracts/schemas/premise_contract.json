@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["premise_id", "generated_at", "core_tension", "audience", "payoff", "story_constraints"],
+  "properties": {
+    "premise_id": { "type": "string" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "core_tension": {
+      "type": "object",
+      "required": ["force_a", "force_b", "conflict_type"],
+      "properties": {
+        "force_a": { "type": "string", "minLength": 1 },
+        "force_b": { "type": "string", "minLength": 1 },
+        "conflict_type": {
+          "type": "string",
+          "enum": ["belief_vs_reality", "desire_vs_cost", "us_vs_system", "known_vs_unknown"]
+        }
+      }
+    },
+    "audience": {
+      "type": "object",
+      "required": ["pain_point", "assumed_belief", "desired_shift"],
+      "properties": {
+        "pain_point": { "type": "string", "minLength": 1 },
+        "assumed_belief": { "type": "string", "minLength": 1 },
+        "desired_shift": { "type": "string", "minLength": 1 }
+      }
+    },
+    "payoff": {
+      "type": "object",
+      "required": ["promise", "emotional_reward", "takeaway_type"],
+      "properties": {
+        "promise": { "type": "string", "minLength": 1 },
+        "emotional_reward": { "type": "string", "minLength": 1 },
+        "takeaway_type": {
+          "type": "string",
+          "enum": ["reframe", "revelation", "permission"]
+        }
+      }
+    },
+    "story_constraints": {
+      "type": "object",
+      "required": ["recommended_arc", "tone", "forbidden"],
+      "properties": {
+        "recommended_arc": { "type": "string", "enum": ["suspense", "emotional"] },
+        "tone": { "type": "string", "minLength": 1 },
+        "forbidden": { "type": "array", "items": { "type": "string" }, "minItems": 2 }
+      }
+    }
+  }
+}

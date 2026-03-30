@@ -1,0 +1,39 @@
+請根據以下 Premise Contract，產出 Architect Contract。
+
+Premise Contract：
+{{premise_contract}}
+
+設計規則提醒：
+- Hook intensity 必須在 0.5–0.7 之間
+- 全片至少一幕 intensity >= 0.85
+- Reward intensity < 全片最高點
+- 總時長 45–90 秒
+- forbidden_enforced 必須包含 Premise 中所有 forbidden 項目
+
+輸出格式：
+{
+  "architect_id": "arch_<uuid前8碼>",
+  "premise_id": "<來自 Premise 的 premise_id>",
+  "story_arc": "<suspense|emotional>",
+  "total_duration_target": "<如 '60s'>",
+  "hook_strategy": {
+    "type": "<hook策略類型>",
+    "opening_move": "<開場第一句話的策略描述>",
+    "tension_entry_point": "<張力切入點描述>"
+  },
+  "scenes": [
+    {
+      "segment_id": 1,
+      "role": "Hook",
+      "duration_budget": "<如 '8s'>",
+      "dramatic_function": "<這幕的戲劇功能>",
+      "emotional_target": "<recognition|curiosity_with_unease|realization|relief_and_clarity>",
+      "intensity": 0.6,
+      "transition_to_next": "<sudden_reversal|escalate|release|callback>"
+    }
+  ],
+  "pacing_notes": "<節奏說明>",
+  "forbidden_enforced": ["<繼承自 Premise 的禁忌>"]
+}
+
+請只輸出符合 schema 的 JSON，不含任何前言、說明文字或 markdown 代碼塊。

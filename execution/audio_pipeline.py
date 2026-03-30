@@ -139,6 +139,7 @@ def _seconds_to_srt_time(seconds: float) -> str:
 def align_with_whisper(
     audio_path: Path,
     output_path: Path,
+    initial_prompt: str = "",
 ) -> list[dict]:
     """
     用 Whisper 對合併音檔做句級對齊，輸出 subtitle.srt。
@@ -147,6 +148,8 @@ def align_with_whisper(
     Args:
         audio_path: 合併後的 MP3 路徑
         output_path: subtitle.srt 輸出路徑
+        initial_prompt: 原始劇本文字，傳入後可引導 Whisper 語言模型，
+                        大幅降低同音字辨識錯誤（如「睡」被誤識為「誰」）
 
     Returns:
         alignment list: [{index, start, end, text}, ...]
@@ -161,6 +164,7 @@ def align_with_whisper(
         str(audio_path),
         language="zh",
         verbose=False,
+        initial_prompt=initial_prompt or None,
     )
 
     segments = result.get("segments", [])
@@ -245,7 +249,20 @@ def run_audio_pipeline(director_contract: dict, project_id: str) -> dict:
     # ── Step 3: Whisper 對齊 ──────────────────────────────────────────────────
     print("\n▶ Audio Step 3/3: Whisper 句級對齊")
     srt_path = output_dir / "subtitle.srt"
-    alignment = align_with_whisper(combined_path, srt_path)
+
+    # 從 Director scenes 收集原始劇本文字作為 Whisper initial_prompt，
+    # 清除 SSML 標籤與 [pause:Xs] 標記後傳入，引導語言模型避免同音字錯誤
+    raw_scripts = []
+    for scene in scenes:
+        script = scene.get("audio", {}).get("voice_script", "")
+        clean = re.sub(r"<[^>]+>", "", script)           # 移除 <break> 等 SSML 標籤
+        clean = re.sub(r"\[pause:[^\]]+\]", "", clean)   # 移除 [pause:Xs] 標記
+        clean = clean.strip()
+        if clean:
+            raw_scripts.append(clean)
+    initial_prompt = "。".join(raw_scripts)
+
+    alignment = align_with_whisper(combined_path, srt_path, initial_prompt=initial_prompt)
     print(f"  ✓ subtitle.srt → {srt_path}（{len(alignment)} 個句段）")
 
     # ── 建立 duration_comparison ──────────────────────────────────────────────

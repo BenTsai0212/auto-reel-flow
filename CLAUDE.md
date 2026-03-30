@@ -601,6 +601,45 @@ PEXELS_API_KEY=...
 
 ---
 
+## MVP-1 實作現況
+
+> 已完成，commit 於 `claude/review-project-FYyWx`
+
+### 已建立的檔案
+
+| 檔案 | 說明 |
+|------|------|
+| `config.py` | API Key 管理、LLM_MODEL、MAX_RETRIES、NATURALNESS_THRESHOLD |
+| `requirements.txt` | anthropic, streamlit, python-dotenv, jsonschema |
+| `dramaturgy/premise.py` | Premise Agent（含重試邏輯） |
+| `dramaturgy/architect.py` | Architect Agent |
+| `dramaturgy/wordsmith.py` | Wordsmith Agent（逐幕呼叫 + naturalness 評審） |
+| `dramaturgy/director.py` | Director Agent |
+| `dramaturgy/validator.py` | 4 個驗證函式（Python 規則） |
+| `dramaturgy/prompts/*.txt` | 9 個 Prompt 模板 |
+| `contracts/schemas/*.json` | 4 個 JSON Schema |
+| `main.py` | CLI 入口，含情緒曲線視覺化輸出 |
+| `app.py` | Streamlit 前端，4 Tab（Premise/Architect/Wordsmith/Director） |
+
+### 啟動方式
+
+```bash
+pip install -r requirements.txt
+
+# CLI（跑劇本 pipeline）
+python main.py
+
+# Streamlit 前端
+streamlit run app.py
+```
+
+### 已省略項目（MVP-1）
+- Validator 的 LLM 語意判斷（force_a vs force_b 相似度）→ 暫跳過
+- Trend Scraper → 使用固定測試資料（睡眠主題）
+- Audio / Visual Pipeline、FFmpeg → 完全未實作
+
+---
+
 ## MVP 分階段策略
 
 採三個遞進版本，每個版本都是可獨立驗證的完整里程碑。

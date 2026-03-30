@@ -1,5 +1,7 @@
 """
-AutoReel-Flow — Streamlit 前端介面（MVP-1 劇本驗證）
+AutoReel-Flow — Streamlit 前端介面
+MVP-1：劇本設計驗證
+MVP-2：劇本設計 + 音軌生成驗證
 啟動：streamlit run app.py
 """
 
@@ -22,11 +24,20 @@ st.set_page_config(
     layout="wide",
 )
 
-st.title("🎬 AutoReel-Flow — 劇本設計驗證")
-st.caption("MVP-1：多 Agent 劇本品質驗證介面")
+st.title("🎬 AutoReel-Flow — 驗證介面")
 
 # ── 側邊欄：輸入 ──────────────────────────────────────────────
 with st.sidebar:
+    st.header("⚙️ 設定")
+
+    mvp_phase = st.radio(
+        "MVP 階段",
+        options=["MVP-1：劇本設計", "MVP-2：劇本 + 音軌"],
+        index=0,
+    )
+    is_mvp2 = mvp_phase.startswith("MVP-2")
+
+    st.divider()
     st.header("📝 輸入 Raw Content")
 
     use_default = st.checkbox("使用預設測試資料（睡眠主題）", value=True)
@@ -52,18 +63,21 @@ with st.sidebar:
         st.caption(f"熱度：{engagement_score}")
 
     st.divider()
-    run_btn = st.button("▶ 執行 Pipeline", type="primary", use_container_width=True)
+    run_btn = st.button("▶ 執行劇本 Pipeline", type="primary", use_container_width=True)
 
 
 # ── 狀態初始化 ────────────────────────────────────────────────
 if "pipeline_state" not in st.session_state:
     st.session_state.pipeline_state = None
-if "running" not in st.session_state:
-    st.session_state.running = False
+if "audio_result" not in st.session_state:
+    st.session_state.audio_result = None
 
 
-# ── Pipeline 執行 ─────────────────────────────────────────────
+# ── 劇本 Pipeline 執行 ────────────────────────────────────────
 if run_btn:
+    # 切換新一輪，清除上次音軌結果
+    st.session_state.audio_result = None
+
     keywords = [k.strip() for k in keywords_str.split(",") if k.strip()]
     raw_content = {
         "title": title,
@@ -82,12 +96,11 @@ if run_btn:
     }
 
     progress_placeholder = st.empty()
-    status_placeholder = st.empty()
 
     stages = ["Premise", "Architect", "Wordsmith", "Director"]
     stage_icons = {"Premise": "🧠", "Architect": "🏗️", "Wordsmith": "✍️", "Director": "🎬"}
 
-    def update_progress(stage_index: int, message: str):
+    def update_progress(stage_index: int):
         with progress_placeholder.container():
             cols = st.columns(4)
             for i, s in enumerate(stages):
@@ -99,8 +112,7 @@ if run_btn:
                     else:
                         st.empty()
 
-    # Stage 1: Premise
-    update_progress(0, "分析核心張力中...")
+    update_progress(0)
     try:
         premise = run_premise(raw_content)
         state["contracts"]["premise"] = premise
@@ -111,8 +123,7 @@ if run_btn:
         st.session_state.pipeline_state = state
         st.stop()
 
-    # Stage 2: Architect
-    update_progress(1, "規劃敘事結構中...")
+    update_progress(1)
     try:
         architect = run_architect(premise)
         state["contracts"]["architect"] = architect
@@ -123,8 +134,7 @@ if run_btn:
         st.session_state.pipeline_state = state
         st.stop()
 
-    # Stage 3: Wordsmith
-    update_progress(2, "撰寫文案中（逐幕處理）...")
+    update_progress(2)
     try:
         wordsmith = run_wordsmith(architect, premise)
         state["contracts"]["wordsmith"] = wordsmith
@@ -135,8 +145,7 @@ if run_btn:
         st.session_state.pipeline_state = state
         st.stop()
 
-    # Stage 4: Director
-    update_progress(3, "規劃視聽指令中...")
+    update_progress(3)
     try:
         director = run_director(wordsmith, architect, premise, project_id)
         state["contracts"]["director"] = director
@@ -159,11 +168,35 @@ if run_btn:
         )
 
     progress_placeholder.empty()
-    st.success(f"✅ Pipeline 完成！project_id: `{project_id}`")
+    st.success(f"✅ 劇本設計完成！project_id: `{project_id}`")
+
+
+# ── 音軌生成（MVP-2）────────────────────────────────────────────
+state = st.session_state.pipeline_state
+
+if is_mvp2 and state and state["status"] == "completed" and not st.session_state.audio_result:
+    st.divider()
+    audio_btn = st.button("🎵 生成音軌（ElevenLabs + Whisper）", type="secondary", use_container_width=True)
+
+    if audio_btn:
+        from execution.audio_pipeline import run_audio_pipeline
+
+        project_id = state["project_id"]
+        director_contract = state["contracts"]["director"]
+
+        with st.spinner("呼叫 ElevenLabs TTS 中...（每幕逐一處理）"):
+            try:
+                audio_result = run_audio_pipeline(director_contract, project_id)
+                st.session_state.audio_result = audio_result
+                st.success("✅ 音軌生成完成！")
+                st.rerun()
+            except Exception as e:
+                st.error(f"❌ 音軌生成失敗：{e}")
 
 
 # ── 結果顯示 ──────────────────────────────────────────────────
 state = st.session_state.pipeline_state
+audio_result = st.session_state.audio_result
 
 if state and state["status"] == "completed":
     contracts = state["contracts"]
@@ -172,7 +205,14 @@ if state and state["status"] == "completed":
     wordsmith = contracts.get("wordsmith", {})
     director = contracts.get("director", {})
 
-    tab1, tab2, tab3, tab4 = st.tabs(["🧠 Premise", "🏗️ Architect", "✍️ Wordsmith", "🎬 Director"])
+    # 動態決定顯示哪些 Tab
+    tab_labels = ["🧠 Premise", "🏗️ Architect", "✍️ Wordsmith", "🎬 Director"]
+    if is_mvp2 and audio_result:
+        tab_labels.append("🎵 Audio")
+
+    tabs = st.tabs(tab_labels)
+    tab1, tab2, tab3, tab4 = tabs[0], tabs[1], tabs[2], tabs[3]
+    tab_audio = tabs[4] if len(tabs) > 4 else None
 
     # ── Tab 1: Premise ────────────────────────────────────────
     with tab1:
@@ -368,22 +408,103 @@ if state and state["status"] == "completed":
         with st.expander("原始 JSON"):
             st.json(director)
 
+    # ── Tab 5: Audio（MVP-2 專用）─────────────────────────────
+    if tab_audio and audio_result:
+        with tab_audio:
+            st.subheader("🎵 音軌驗證")
+
+            # 合併音檔
+            combined_path = audio_result.get("combined_audio", "")
+            if combined_path and Path(combined_path).exists():
+                st.markdown("**合併音檔（voice_combined.mp3）**")
+                with open(combined_path, "rb") as f:
+                    st.audio(f.read(), format="audio/mp3")
+            st.divider()
+
+            # 逐幕音檔
+            st.subheader("逐幕音檔")
+            scene_files = audio_result.get("scene_audio_files", [])
+            dir_scenes_list = director.get("scenes", [])
+            for i, audio_path in enumerate(scene_files):
+                scene_info = dir_scenes_list[i] if i < len(dir_scenes_list) else {}
+                seg_id = scene_info.get("segment_id", i + 1)
+                role = scene_info.get("role", "")
+                dur = scene_info.get("duration_est", "")
+                label = f"Scene {seg_id} — {role} | {dur}"
+
+                with st.expander(label):
+                    if Path(audio_path).exists():
+                        with open(audio_path, "rb") as f:
+                            st.audio(f.read(), format="audio/mp3")
+                    else:
+                        st.warning(f"音檔不存在：{audio_path}")
+
+            st.divider()
+
+            # 時長比較表
+            st.subheader("時長比較（估算 vs 實際）")
+            comparison = audio_result.get("duration_comparison", [])
+            if comparison:
+                import pandas as pd
+                df = pd.DataFrame(comparison)
+                df = df.rename(columns={
+                    "segment_id": "Scene",
+                    "role": "Role",
+                    "estimated": "估算",
+                    "estimated_sec": "估算(s)",
+                    "actual_sec": "實際(s)",
+                    "deviation_sec": "誤差(s)",
+                    "within_threshold": "≤0.5s",
+                })
+                st.dataframe(
+                    df[["Scene", "Role", "估算", "估算(s)", "實際(s)", "誤差(s)", "≤0.5s"]],
+                    use_container_width=True,
+                )
+
+                all_pass = all(r["within_threshold"] for r in comparison)
+                if all_pass:
+                    st.success("✅ 所有幕時長誤差均在 ±0.5s 內（MVP-2 成功標準通過）")
+                else:
+                    failed = [r for r in comparison if not r["within_threshold"]]
+                    st.warning(f"⚠️ {len(failed)} 幕時長誤差超過 0.5s")
+
+            st.divider()
+
+            # 字幕內容
+            st.subheader("Whisper 對齊結果（subtitle.srt）")
+            srt_path = audio_result.get("subtitle_srt", "")
+            alignment = audio_result.get("alignment", [])
+
+            if alignment:
+                for seg in alignment:
+                    st.markdown(
+                        f"`{seg['start']:.2f}s → {seg['end']:.2f}s` &nbsp; {seg['text']}",
+                        unsafe_allow_html=True,
+                    )
+
+            if srt_path and Path(srt_path).exists():
+                with st.expander("原始 SRT 內容"):
+                    st.code(Path(srt_path).read_text(encoding="utf-8"), language=None)
+
 elif state and state["status"] == "failed":
     st.error("Pipeline 執行失敗")
     for err in state.get("errors", []):
         st.markdown(f"**Stage:** `{err['stage']}`")
         st.markdown(f"**原因：** {err['reason']}")
+
 else:
-    st.info("👈 在左側填入內容後，按「執行 Pipeline」開始驗證。")
-    with st.expander("關於 AutoReel-Flow MVP-1"):
-        st.markdown("""
-        **MVP-1 劇本設計層** 驗證目標：
+    col1, col2 = st.columns(2)
+    with col1:
+        st.info("👈 在左側選擇 MVP 階段，填入內容後按「執行劇本 Pipeline」開始驗證。")
+    with col2:
+        with st.expander("關於各 MVP 階段"):
+            st.markdown("""
+            **MVP-1 劇本設計層**
+            - Premise → Architect → Wordsmith → Director
+            - 驗證劇本品質與情緒曲線
 
-        1. **Premise Agent** — 從趨勢內容提煉核心張力
-        2. **Architect Agent** — 設計具情緒曲線的四幕骨架
-        3. **Wordsmith Agent** — 將骨架轉化為真人語感文案（逐幕 + naturalness 評審）
-        4. **Director Agent** — 輸出完整視聽執行指令
-
-        每個 Agent 產出後均通過 **Contract Validator** 強制驗證。
-        Wordsmith 每幕有獨立的自然度評審（naturalness_score ≥ 70 才通過）。
-        """)
+            **MVP-2 音軌生成層**
+            - 在 MVP-1 基礎上，生成語音音檔
+            - ElevenLabs TTS → 合併音檔 → Whisper 字幕對齊
+            - 需設定 `ELEVENLABS_API_KEY` 與 `ELEVENLABS_VOICE_ID`
+            """)

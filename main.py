@@ -1,6 +1,9 @@
 """
-AutoReel-Flow — CLI 端到端 Pipeline 入口（MVP-1：劇本設計層）
-用法：python main.py [--topic TOPIC]
+AutoReel-Flow — CLI 端到端 Pipeline 入口
+用法：
+  python main.py                  # MVP-1：劇本設計層
+  python main.py --phase 2        # MVP-2：劇本 + 音軌生成
+  python main.py --topic sleep    # 指定測試主題
 """
 
 import argparse
@@ -30,8 +33,8 @@ TOPICS = {
 }
 
 
-def run_pipeline(raw_content: dict, project_id: str) -> dict:
-    """執行完整劇本設計 Pipeline，回傳包含所有 contracts 的狀態字典。"""
+def run_dramaturgy_pipeline(raw_content: dict, project_id: str) -> dict:
+    """執行劇本設計 Pipeline（MVP-1），回傳包含所有 contracts 的狀態字典。"""
     state = {
         "project_id": project_id,
         "status": "running",
@@ -84,9 +87,9 @@ def run_pipeline(raw_content: dict, project_id: str) -> dict:
             score_icon = "✓" if isinstance(score, int) and score >= 70 else "⚠"
             print(f"  {score_icon} Scene {scene['segment_id']} [{scene['role']}] "
                   f"naturalness={score} | {scene['duration_est']}")
-        print(f"\n  文案預覽（Scene 1）：")
         if wordsmith["scenes"]:
             raw = wordsmith["scenes"][0]["voice_script"]["raw"]
+            print(f"\n  文案預覽（Scene 1）：")
             print(f"  「{raw[:100]}{'...' if len(raw) > 100 else ''}」")
     except PipelineError as e:
         state["status"] = "failed"
@@ -128,8 +131,36 @@ def save_contracts(state: dict) -> None:
     print(f"  💾 {state_path}")
 
 
+def run_audio_stage(director_contract: dict, project_id: str) -> dict | None:
+    """執行 MVP-2 音軌生成階段。"""
+    from execution.audio_pipeline import run_audio_pipeline
+
+    print("\n" + "=" * 60)
+    print("🎵 MVP-2: Audio Pipeline")
+    print("=" * 60)
+
+    try:
+        audio_result = run_audio_pipeline(director_contract, project_id)
+        print("\n✅ 音軌生成完成！")
+
+        # 顯示 duration comparison
+        print("\n時長比較（估算 vs 實際）：")
+        print(f"  {'Scene':<8} {'Role':<15} {'估算':>8} {'實際':>8} {'誤差':>8} {'狀態'}")
+        print("  " + "-" * 58)
+        for row in audio_result.get("duration_comparison", []):
+            status = "✓" if row["within_threshold"] else "⚠"
+            print(f"  {row['segment_id']:<8} {row['role']:<15} "
+                  f"{row['estimated_sec']:>7.1f}s {row['actual_sec']:>7.1f}s "
+                  f"{row['deviation_sec']:>7.2f}s {status}")
+
+        return audio_result
+    except Exception as e:
+        print(f"\n❌ 音軌生成失敗：{e}")
+        return None
+
+
 def main():
-    parser = argparse.ArgumentParser(description="AutoReel-Flow MVP-1 Pipeline")
+    parser = argparse.ArgumentParser(description="AutoReel-Flow Pipeline")
     parser.add_argument(
         "--topic",
         default="sleep",
@@ -141,23 +172,42 @@ def main():
         default=None,
         help="專案 ID（預設自動產生）",
     )
+    parser.add_argument(
+        "--phase",
+        type=int,
+        default=1,
+        choices=[1, 2],
+        help="執行階段：1=劇本設計（預設），2=劇本+音軌生成",
+    )
     args = parser.parse_args()
 
     project_id = args.project_id or f"proj_{uuid.uuid4().hex[:8]}"
     raw_content = TOPICS[args.topic]
 
-    state = run_pipeline(raw_content, project_id)
+    # ── Phase 1：劇本設計 ─────────────────────────────────────────────────────
+    state = run_dramaturgy_pipeline(raw_content, project_id)
 
     print("\n" + "=" * 60)
-    if state["status"] == "completed":
-        print(f"✅ Pipeline 完成！project_id: {project_id}")
-        print("\n儲存 Contracts...")
-        save_contracts(state)
-    else:
+    if state["status"] != "completed":
         print(f"❌ Pipeline 失敗於 stage: {state['errors'][-1]['stage'] if state['errors'] else 'unknown'}")
         for err in state["errors"]:
             print(f"   {err['stage']}: {err['reason']}")
+        print("=" * 60)
+        return
+
+    print(f"✅ 劇本設計完成！project_id: {project_id}")
+    print("\n儲存 Contracts...")
+    save_contracts(state)
     print("=" * 60)
+
+    # ── Phase 2：音軌生成 ─────────────────────────────────────────────────────
+    if args.phase >= 2:
+        director_contract = state["contracts"]["director"]
+        audio_result = run_audio_stage(director_contract, project_id)
+        if audio_result:
+            print(f"\n  音檔：{audio_result['combined_audio']}")
+            print(f"  字幕：{audio_result['subtitle_srt']}")
+        print("=" * 60)
 
 
 if __name__ == "__main__":

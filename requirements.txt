@@ -2,3 +2,8 @@ anthropic>=0.40.0
 streamlit>=1.35.0
 python-dotenv>=1.0.0
 jsonschema>=4.22.0
+
+# MVP-2: Audio Pipeline
+elevenlabs>=1.0.0
+openai-whisper>=20231117
+pydub>=0.25.0

@@ -46,6 +46,8 @@ def _tts_params_to_voice_settings(tts_params: dict):
     style_str = tts_params.get("style", "measured_serious")
     style_float = STYLE_MAP.get(style_str, 0.25)
 
+    # 注意：speaking_rate 在 ElevenLabs v1.x VoiceSettings 中不存在，
+    # ElevenLabs 不提供直接的語速控制參數，此欄位由 TTS 模型自行決定語速。
     return VoiceSettings(
         stability=float(tts_params.get("stability", 0.5)),
         similarity_boost=float(tts_params.get("similarity_boost", 0.75)),

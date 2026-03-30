@@ -1,0 +1,34 @@
+請根據以下趨勢內容，產出 Premise Contract。
+
+標題：{{title}}
+摘要：{{summary}}
+關鍵詞：{{keywords}}
+互動熱度分數：{{engagement_score}}
+
+輸出格式：
+{
+  "premise_id": "premise_<uuid前8碼>",
+  "generated_at": "<ISO8601時間>",
+  "core_tension": {
+    "force_a": "<觀眾原本相信的>",
+    "force_b": "<現實打臉的>",
+    "conflict_type": "<belief_vs_reality|desire_vs_cost|us_vs_system|known_vs_unknown>"
+  },
+  "audience": {
+    "pain_point": "<具體情緒或處境，必須包含情緒詞，超過8字>",
+    "assumed_belief": "<受眾原本的假設>",
+    "desired_shift": "<你希望觀眾產生的認知轉變>"
+  },
+  "payoff": {
+    "promise": "<這支影片給觀眾的承諾>",
+    "emotional_reward": "<觀看完的情緒回報>",
+    "takeaway_type": "<reframe|revelation|permission>"
+  },
+  "story_constraints": {
+    "recommended_arc": "<suspense|emotional>",
+    "tone": "<整體語氣基調>",
+    "forbidden": ["<禁忌1>", "<禁忌2>"]
+  }
+}
+
+請只輸出符合 schema 的 JSON，不含任何前言、說明文字或 markdown 代碼塊。

@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["architect_id", "premise_id", "story_arc", "total_duration_target", "hook_strategy", "scenes", "pacing_notes", "forbidden_enforced"],
+  "properties": {
+    "architect_id": { "type": "string" },
+    "premise_id": { "type": "string" },
+    "story_arc": { "type": "string", "enum": ["suspense", "emotional"] },
+    "total_duration_target": { "type": "string" },
+    "hook_strategy": {
+      "type": "object",
+      "required": ["type", "opening_move", "tension_entry_point"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["belief_affirmation_then_denial", "pain_amplification", "shared_enemy_framing", "false_familiarity"]
+        },
+        "opening_move": { "type": "string", "minLength": 1 },
+        "tension_entry_point": { "type": "string", "minLength": 1 }
+      }
+    },
+    "scenes": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["segment_id", "role", "duration_budget", "dramatic_function", "emotional_target", "intensity", "transition_to_next"],
+        "properties": {
+          "segment_id": { "type": "integer" },
+          "role": { "type": "string", "enum": ["Hook", "Tension_Build", "Reveal", "Reward"] },
+          "duration_budget": { "type": "string" },
+          "dramatic_function": { "type": "string", "minLength": 1 },
+          "emotional_target": {
+            "type": "string",
+            "enum": ["recognition", "curiosity_with_unease", "realization", "relief_and_clarity"]
+          },
+          "intensity": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+          "transition_to_next": {
+            "type": ["string", "null"],
+            "enum": ["sudden_reversal", "escalate", "release", "callback", null]
+          }
+        }
+      }
+    },
+    "pacing_notes": { "type": "string" },
+    "forbidden_enforced": { "type": "array", "items": { "type": "string" } }
+  }
+}

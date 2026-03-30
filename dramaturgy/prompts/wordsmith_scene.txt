@@ -1,0 +1,50 @@
+請為以下場景寫出文案，產出單一場景的 Wordsmith 輸出物件。
+
+場景資訊：
+- segment_id：{{segment_id}}
+- role：{{role}}
+- dramatic_function：{{dramatic_function}}
+- emotional_target：{{emotional_target}}
+- intensity：{{intensity}}
+- transition_to_next：{{transition_to_next}}
+- duration_budget：{{duration_budget}}
+
+全局語境：
+- dominant_tone：{{dominant_tone}}
+- forbidden_phrases：{{forbidden_phrases}}
+- forbidden_enforced：{{forbidden_enforced}}
+
+寫作規則：
+1. voice_script.raw 是純文字，供人工閱讀評審
+2. voice_script.annotated 包含 [pause:Xs] 標記，供 TTS 使用
+3. duration_est 依據說話速度（約每秒 4–5 字）估算，需在 duration_budget 的 ±20% 內
+4. intensity 需與場景指定值誤差 ≤ 0.05
+5. 絕對不能出現 forbidden_phrases 中的任何詞彙
+
+輸出單一場景物件（非陣列）：
+{
+  "segment_id": {{segment_id}},
+  "role": "{{role}}",
+  "emotional_target": "{{emotional_target}}",
+  "intensity": {{intensity}},
+  "voice_script": {
+    "raw": "<純文字文案>",
+    "annotated": "<含 [pause:Xs] 的文案>"
+  },
+  "language_markers": {
+    "oral_hooks": ["<使用的口語鉤子>"],
+    "pause_count": <整數>,
+    "avg_sentence_length": <平均字數>,
+    "rhetorical_device": "<rhetorical_question|preemptive_defense|contrast_pivot|concrete_anchor|second_person_mirror|open_loop>"
+  },
+  "tts_params": {
+    "stability": <0.0–1.0>,
+    "similarity_boost": <0.0–1.0>,
+    "style": "<intimate_whisper|measured_serious|revelatory_rising|grounded_warm|urgent_direct>",
+    "speaking_rate": <0.7–1.2>
+  },
+  "naturalness_score": null,
+  "duration_est": "<如 '12s'>"
+}
+
+請只輸出符合 schema 的 JSON，不含任何前言、說明文字或 markdown 代碼塊。

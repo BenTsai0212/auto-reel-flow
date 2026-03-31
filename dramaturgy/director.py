@@ -4,6 +4,7 @@ The Director Agent — 導演
 """
 
 import json
+import re
 import uuid
 from pathlib import Path
 
@@ -83,6 +84,16 @@ def run_director(
 
         if not contract.get("director_id"):
             contract["director_id"] = f"dir_{uuid.uuid4().hex[:8]}"
+
+        # 自動修正 total_duration_est：以各幕加總為準，避免 LLM 手算不一致導致驗證失敗
+        try:
+            scenes_dur = sum(
+                float(re.sub(r"[^\d.]", "", s.get("duration_est", "0s")))
+                for s in contract.get("scenes", [])
+            )
+            contract["total_duration_est"] = f"{scenes_dur:.1f}s"
+        except Exception:
+            pass
 
         try:
             validate_director(contract, wordsmith_contract, architect_contract)

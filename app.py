@@ -391,12 +391,12 @@ if state and state["status"] == "completed":
                 import pandas as pd
                 df = pd.DataFrame([
                     {
-                        "幕次": f"Scene {s['segment_id']}\n{s['role']}",
-                        "強度": s["intensity"],
+                        "幕次": f"Scene {s.get('segment_id', i+1)}\n{s.get('role', '')}",
+                        "強度": s.get("intensity", 0),
                         "電荷": f"{s.get('v_start','?')}→{s.get('v_end','?')}",
                         "能量": s.get("scene_energy", 0),
                     }
-                    for s in scenes
+                    for i, s in enumerate(scenes)
                 ])
                 chart = (
                     alt.Chart(df)
@@ -422,13 +422,13 @@ if state and state["status"] == "completed":
                 energy = s.get("scene_energy", "?")
                 charge_label = f"電荷 {v_start}→{v_end} [E={energy}]"
                 with st.expander(
-                    f"Scene {s['segment_id']} — {s['role']} "
-                    f"(intensity={s['intensity']}) | {charge_label}"
+                    f"Scene {s.get('segment_id', '')} — {s.get('role', '')} "
+                    f"(intensity={s.get('intensity', 0)}) | {charge_label}"
                 ):
-                    st.markdown(f"**節拍標籤：** `{s.get('beat_label', s['role'])}`")
-                    st.markdown(f"**戲劇功能：** {s['dramatic_function']}")
-                    st.markdown(f"**情緒目標：** `{s['emotional_target']}`")
-                    st.markdown(f"**時長預算：** {s['duration_budget']}")
+                    st.markdown(f"**節拍標籤：** `{s.get('beat_label', s.get('role', ''))}`")
+                    st.markdown(f"**戲劇功能：** {s.get('dramatic_function', '')}")
+                    st.markdown(f"**情緒目標：** `{s.get('emotional_target', '')}`")
+                    st.markdown(f"**時長預算：** {s.get('duration_budget', 'N/A')}")
                     st.markdown(f"**轉場方式：** `{s.get('transition_to_next', 'null')}`")
                     col_v1, col_v2, col_v3 = st.columns(3)
                     with col_v1:
@@ -479,7 +479,7 @@ if state and state["status"] == "completed":
             with score_cols[i]:
                 color = "normal" if score and score >= 70 else "inverse"
                 st.metric(
-                    label=f"Scene {scene['segment_id']} {scene['role']}",
+                    label=f"Scene {scene.get('segment_id', i+1)} {scene.get('role', '')}",
                     value=score if score else "N/A",
                     delta="通過" if score and score >= 70 else "未達標",
                     delta_color=color,
@@ -493,17 +493,18 @@ if state and state["status"] == "completed":
             score_badge = f"✅ {score}" if score and score >= 70 else f"⚠️ {score}"
             beat_label = scene.get("beat_label", scene.get("role", ""))
             with st.expander(
-                f"Scene {scene['segment_id']} — {beat_label} | naturalness={score_badge} | {scene['duration_est']}"
+                f"Scene {scene.get('segment_id', '')} — {beat_label} | naturalness={score_badge} | {scene.get('duration_est', '')}"
             ):
                 st.markdown("**原始文案（raw）**")
+                voice_script = scene.get("voice_script", {})
                 st.markdown(
                     f"<div style='font-size:1.1em; line-height:1.8; padding:12px; "
                     f"background:#f0f2f6; border-radius:8px;'>"
-                    f"{scene['voice_script']['raw']}</div>",
+                    f"{voice_script.get('raw', '')}</div>",
                     unsafe_allow_html=True,
                 )
                 st.markdown("**TTS 標記版本（Dialogue Assassin 後處理）**")
-                st.code(scene["voice_script"]["annotated"], language=None)
+                st.code(voice_script.get("annotated", ""), language=None)
 
                 col1, col2 = st.columns(2)
                 with col1:
@@ -540,9 +541,9 @@ if state and state["status"] == "completed":
         arc_cols = st.columns(len(dir_scenes))
         for i, scene in enumerate(dir_scenes):
             with arc_cols[i]:
-                st.markdown(f"**Scene {scene['segment_id']}**")
-                st.caption(f"色調: {scene['visual']['color_grade']}")
-                st.caption(f"BGM: {scene['audio']['bgm']['mood']}")
+                st.markdown(f"**Scene {scene.get('segment_id', i+1)}**")
+                st.caption(f"色調: {scene.get('visual', {}).get('color_grade', '')}")
+                st.caption(f"BGM: {scene.get('audio', {}).get('bgm', {}).get('mood', '')}")
 
         st.divider()
         st.subheader("場景視聽指令")
@@ -550,7 +551,7 @@ if state and state["status"] == "completed":
         for scene in dir_scenes:
             beat_label = scene.get("beat_label", scene.get("role", ""))
             with st.expander(
-                f"Scene {scene['segment_id']} — {beat_label} | {scene['visual']['shot_type']} | {scene['duration_est']}"
+                f"Scene {scene.get('segment_id', '')} — {beat_label} | {scene.get('visual', {}).get('shot_type', '')} | {scene.get('duration_est', '')}"
             ):
                 col1, col2, col3 = st.columns(3)
                 with col1:

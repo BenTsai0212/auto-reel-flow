@@ -1,7 +1,7 @@
 """
 AutoReel-Flow — CLI 端到端 Pipeline 入口
 用法：
-  python main.py                  # MVP-1：劇本設計層
+  python main.py                  # MVP-1：劇本設計層（含 Framework DNA 策略分析）
   python main.py --phase 2        # MVP-2：劇本 + 音軌生成
   python main.py --topic sleep    # 指定測試主題
 """
@@ -15,6 +15,7 @@ from dramaturgy.premise import run_premise, PipelineError
 from dramaturgy.architect import run_architect
 from dramaturgy.wordsmith import run_wordsmith
 from dramaturgy.director import run_director
+from dramaturgy.strategy import run_theme_analyzer, run_strategy_synthesizer
 
 OUTPUT_DIR = Path("outputs/contracts")
 
@@ -33,18 +34,51 @@ TOPICS = {
 }
 
 
-def run_dramaturgy_pipeline(raw_content: dict, project_id: str) -> dict:
+def run_strategy_pipeline(raw_content: dict) -> dict:
+    """
+    執行策略智能層（Phase 0），回傳 Framework DNA。
+    ThemeAnalyzer → StrategySynthesizer → 輸出導演簡報
+    """
+    print("\n▶ Strategy Step 1/2: Theme Analyzer")
+    theme_dim = run_theme_analyzer(raw_content)
+    print(f"  ✓ medium: {theme_dim.get('medium')} | tone: {theme_dim.get('tone')}")
+    print(f"    conflict_axis: {theme_dim.get('conflict_axis')}")
+    print(f"    myth_resonance: {theme_dim.get('myth_resonance'):.2f} | "
+          f"knowledge_transfer: {theme_dim.get('knowledge_transfer'):.2f} | "
+          f"pace_requirement: {theme_dim.get('pace_requirement'):.2f}")
+
+    print("\n▶ Strategy Step 2/2: Strategy Synthesizer")
+    framework_dna = run_strategy_synthesizer(theme_dim)
+    print(f"  ✓ primary_framework: {framework_dna.get('primary_framework')} | "
+          f"scene_count: {framework_dna.get('scene_count')}")
+    print(f"    story_shape: {framework_dna.get('story_shape')}")
+
+    print("\n┌─────────────────────────────────────────────────────┐")
+    print("│ 導演簡報（Director's Brief）                          │")
+    print("├─────────────────────────────────────────────────────┤")
+    brief = framework_dna.get("director_brief", "")
+    for line in brief.split("。"):
+        if line.strip():
+            print(f"│ {line.strip()}")
+    print("└─────────────────────────────────────────────────────┘")
+
+    return framework_dna
+
+
+def run_dramaturgy_pipeline(raw_content: dict, project_id: str, framework_dna: dict) -> dict:
     """執行劇本設計 Pipeline（MVP-1），回傳包含所有 contracts 的狀態字典。"""
     state = {
         "project_id": project_id,
         "status": "running",
         "current_stage": "premise",
         "retry_count": {},
-        "contracts": {},
+        "contracts": {
+            "framework_dna": framework_dna,
+        },
         "errors": [],
     }
 
-    print(f"\n[{project_id}] 啟動 Pipeline...")
+    print(f"\n[{project_id}] 啟動 Dramaturgy Pipeline...")
     print("=" * 60)
 
     # Stage 1: Premise
@@ -61,27 +95,39 @@ def run_dramaturgy_pipeline(raw_content: dict, project_id: str) -> dict:
         print(f"  ✗ Premise 失敗: {e.reason}")
         return state
 
-    # Stage 2: Architect
+    # Stage 2: Architect（傳入 framework_dna）
     print("\n▶ Stage 2/4: The Architect Agent")
     try:
-        architect = run_architect(premise)
+        architect = run_architect(premise, framework_dna)
         state["contracts"]["architect"] = architect
         scenes_info = [(s["role"], s["intensity"]) for s in architect["scenes"]]
-        print(f"  ✓ Architect 完成 | arc: {architect['story_arc']} | 共 {len(architect['scenes'])} 幕")
-        for role, intensity in scenes_info:
+        framework = architect.get("primary_framework", "three_act")
+        print(f"  ✓ Architect 完成 | arc: {architect['story_arc']} | "
+              f"framework: {framework} | 共 {len(architect['scenes'])} 幕")
+        for scene in architect["scenes"]:
+            role = scene["role"]
+            intensity = scene["intensity"]
+            v_start = scene.get("v_start", "?")
+            v_end = scene.get("v_end", "?")
+            energy = scene.get("scene_energy", "?")
             bar = "█" * int(intensity * 20)
-            print(f"    {role:<15} intensity={intensity:.2f}  {bar}")
+            charge = f"{v_start}→{v_end}[E={energy}]"
+            print(f"    {role:<20} intensity={intensity:.2f}  {bar:<20} {charge}")
     except PipelineError as e:
         state["status"] = "failed"
         state["errors"].append({"stage": e.stage, "reason": e.reason})
         print(f"  ✗ Architect 失敗: {e.reason}")
         return state
 
-    # Stage 3: Wordsmith
+    # Stage 3: Wordsmith（傳入 framework_dna 用於角色語音特質生成）
     print("\n▶ Stage 3/4: The Wordsmith Agent（逐幕處理）")
     try:
-        wordsmith = run_wordsmith(architect, premise)
+        wordsmith = run_wordsmith(architect, premise, framework_dna)
         state["contracts"]["wordsmith"] = wordsmith
+        char_profile = wordsmith.get("character_profile", {})
+        if char_profile:
+            voice = char_profile.get("protagonist_voice", {})
+            print(f"  ✓ Character Profile: {voice.get('speech_pattern', '')[:50]}")
         for scene in wordsmith["scenes"]:
             score = scene.get("naturalness_score", "N/A")
             score_icon = "✓" if isinstance(score, int) and score >= 70 else "⚠"
@@ -145,11 +191,11 @@ def run_audio_stage(director_contract: dict, project_id: str) -> dict | None:
 
         # 顯示 duration comparison
         print("\n時長比較（估算 vs 實際）：")
-        print(f"  {'Scene':<8} {'Role':<15} {'估算':>8} {'實際':>8} {'誤差':>8} {'狀態'}")
-        print("  " + "-" * 58)
+        print(f"  {'Scene':<8} {'Role':<20} {'估算':>8} {'實際':>8} {'誤差':>8} {'狀態'}")
+        print("  " + "-" * 62)
         for row in audio_result.get("duration_comparison", []):
             status = "✓" if row["within_threshold"] else "⚠"
-            print(f"  {row['segment_id']:<8} {row['role']:<15} "
+            print(f"  {row['segment_id']:<8} {row['role']:<20} "
                   f"{row['estimated_sec']:>7.1f}s {row['actual_sec']:>7.1f}s "
                   f"{row['deviation_sec']:>7.2f}s {status}")
 
@@ -184,8 +230,18 @@ def main():
     project_id = args.project_id or f"proj_{uuid.uuid4().hex[:8]}"
     raw_content = TOPICS[args.topic]
 
-    # ── Phase 1：劇本設計 ─────────────────────────────────────────────────────
-    state = run_dramaturgy_pipeline(raw_content, project_id)
+    # ── Strategy Layer：Framework DNA 分析 ───────────────────────
+    print("=" * 60)
+    print("🧠 AutoReel-Flow — Strategy Intelligence Layer")
+    print("=" * 60)
+    try:
+        framework_dna = run_strategy_pipeline(raw_content)
+    except PipelineError as e:
+        print(f"\n❌ Strategy 分析失敗：{e.reason}")
+        return
+
+    # ── Phase 1：劇本設計 ─────────────────────────────────────────
+    state = run_dramaturgy_pipeline(raw_content, project_id, framework_dna)
 
     print("\n" + "=" * 60)
     if state["status"] != "completed":
@@ -200,7 +256,7 @@ def main():
     save_contracts(state)
     print("=" * 60)
 
-    # ── Phase 2：音軌生成 ─────────────────────────────────────────────────────
+    # ── Phase 2：音軌生成 ─────────────────────────────────────────
     if args.phase >= 2:
         director_contract = state["contracts"]["director"]
         audio_result = run_audio_stage(director_contract, project_id)

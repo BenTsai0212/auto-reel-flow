@@ -1,35 +1,47 @@
-請根據以下 Premise Contract，產出 Architect Contract。
+請根據以下 Premise Contract 與 Framework DNA，產出 Architect Contract。
 
 Premise Contract：
 {{premise_contract}}
 
+Framework DNA：
+{{framework_dna}}
+
 設計規則提醒：
-- Hook intensity 必須在 0.5–0.7 之間
+- 幕數必須等於 Framework DNA 的 scene_count（{{scene_count}} 幕）
+- 每個場景的 role 使用 Framework DNA 的 beat_structure 中對應的 function 名稱
+- 第一幕 intensity 必須在 0.5–0.7 之間
 - 全片至少一幕 intensity >= 0.85
-- Reward intensity < 全片最高點
+- 最後一幕 intensity < 全片最高點
 - 總時長 45–90 秒
+- 所有場景 scene_energy > 0（v_start ≠ v_end，否則是死場景）
 - forbidden_enforced 必須包含 Premise 中所有 forbidden 項目
 
 輸出格式：
 {
   "architect_id": "arch_<uuid前8碼>",
   "premise_id": "<來自 Premise 的 premise_id>",
+  "dna_id": "<來自 Framework DNA 的 dna_id>",
   "story_arc": "<suspense|emotional>",
+  "primary_framework": "<save_the_cat|hero_journey|mckee_gap|three_act>",
   "total_duration_target": "<如 '60s'>",
   "hook_strategy": {
     "type": "<hook策略類型>",
-    "opening_move": "<開場第一句話的策略描述>",
+    "opening_move": "<開場策略描述>",
     "tension_entry_point": "<張力切入點描述>"
   },
   "scenes": [
     {
       "segment_id": 1,
-      "role": "Hook",
-      "duration_budget": "<如 '8s'>",
+      "role": "<來自 beat_structure 的 function 名稱>",
+      "beat_label": "<與 role 相同，作為人類可讀標籤>",
+      "v_start": "<positive|negative|neutral>",
+      "v_end": "<positive|negative|neutral>",
+      "scene_energy": <0|1|2，根據 v_start 和 v_end 計算>,
+      "duration_budget": "<如 '10s'>",
       "dramatic_function": "<這幕的戲劇功能>",
       "emotional_target": "<recognition|curiosity_with_unease|realization|relief_and_clarity>",
-      "intensity": 0.6,
-      "transition_to_next": "<sudden_reversal|escalate|release|callback>"
+      "intensity": <0.0–1.0>,
+      "transition_to_next": "<sudden_reversal|escalate|release|callback|null>"
     }
   ],
   "pacing_notes": "<節奏說明>",

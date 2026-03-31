@@ -3,9 +3,12 @@
 場景資訊：
 - segment_id：{{segment_id}}
 - role：{{role}}
+- beat_label：{{beat_label}}
 - dramatic_function：{{dramatic_function}}
 - emotional_target：{{emotional_target}}
 - intensity：{{intensity}}
+- v_start（場景開始的情感極性）：{{v_start}}
+- v_end（場景結束的情感極性）：{{v_end}}
 - transition_to_next：{{transition_to_next}}
 - duration_budget：{{duration_budget}}
 
@@ -14,22 +17,30 @@
 - forbidden_phrases：{{forbidden_phrases}}
 - forbidden_enforced：{{forbidden_enforced}}
 
+主角語音特質（你的文案必須符合這個聲音）：
+{{protagonist_voice}}
+
 寫作規則：
 1. voice_script.raw 是純文字，供人工閱讀評審
 2. voice_script.annotated 包含 [pause:Xs] 標記，供 TTS 使用
 3. duration_est 依據說話速度（約每秒 4–5 字）估算，需在 duration_budget 的 ±20% 內
 4. intensity 需與場景指定值誤差 ≤ 0.05
 5. 絕對不能出現 forbidden_phrases 中的任何詞彙
+6. 場景必須體現電荷變化：從 {{v_start}} 狀態過渡到 {{v_end}} 狀態
+   （若 v_start=positive → v_end=negative，文案應讓觀眾從正面期待轉為不安或衝擊）
+7. 文案的說話方式必須符合主角語音特質的 speech_pattern 和 sample_phrases 風格
+8. 主角「說不出口的事」（cannot_say_directly）必須透過行為、細節或停頓來暗示，絕對不能直白陳述
 
 輸出單一場景物件（非陣列）：
 {
   "segment_id": {{segment_id}},
   "role": "{{role}}",
+  "beat_label": "{{beat_label}}",
   "emotional_target": "{{emotional_target}}",
   "intensity": {{intensity}},
   "voice_script": {
-    "raw": "<純文字文案>",
-    "annotated": "<含 [pause:Xs] 的文案>"
+    "raw": "<純文字文案，符合主角語音特質>",
+    "annotated": "<含 [pause:Xs] 的文案，停頓位置必須有語義意義>"
   },
   "language_markers": {
     "oral_hooks": ["<使用的口語鉤子>"],

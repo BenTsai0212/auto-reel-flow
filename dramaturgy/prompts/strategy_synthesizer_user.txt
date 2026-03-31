@@ -1,0 +1,31 @@
+請根據以下主題維度向量，輸出 Framework DNA 配方。
+
+ThemeDimension：
+{{theme_dimension}}
+
+輸出格式：
+{
+  "dna_id": "dna_<uuid前8碼>",
+  "primary_framework": "<save_the_cat|hero_journey|mckee_gap|three_act>",
+  "weights": {
+    "save_the_cat": <0.0–1.0>,
+    "hero_journey": <0.0–1.0>,
+    "mckee_gap": <0.0–1.0>,
+    "three_act": <0.0–1.0>
+  },
+  "scene_count": <4–8的整數>,
+  "beat_structure": [
+    {
+      "beat_index": 1,
+      "function": "<如 Opening_Image | Call_to_Adventure | Setup>",
+      "pct_of_story": <0–100的整數，此場景在故事中的位置百分比>
+    }
+  ],
+  "story_shape": "<一句話描述故事形狀，如：逐步揭示→中點翻轉→高峰衝擊→帶著答案離開>",
+  "emotional_arc": "<情感弧線描述，如：認知衝擊 → 懷疑不安 → 驚覺顛覆 → 帶著新視角離開>",
+  "director_brief": "<給使用者看的導演簡報，描述：故事核心命題、情感弧線走向、最關鍵轉折點、為何此框架最適合（3–5句話）>"
+}
+
+注意：beat_structure 陣列長度必須等於 scene_count。
+
+請只輸出 JSON，不含任何前言或說明。

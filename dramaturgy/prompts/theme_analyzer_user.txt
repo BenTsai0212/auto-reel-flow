@@ -1,0 +1,19 @@
+請分析以下內容主題，輸出 ThemeDimension 向量。
+
+主題資料：
+- 標題：{{title}}
+- 摘要：{{summary}}
+- 關鍵詞：{{keywords}}
+- 熱度分數：{{engagement_score}}
+
+輸出格式：
+{
+  "medium": "<youtube_short_doc|knowledge_podcast|historical_story|drama_short>",
+  "tone": "<suspense_horror|emotional_warm|inspirational|analytical>",
+  "conflict_axis": "<external_mystery|internal_growth|systemic_injustice|belief_vs_fact>",
+  "myth_resonance": <0.0–1.0的浮點數>,
+  "knowledge_transfer": <0.0–1.0的浮點數>,
+  "pace_requirement": <0.0–1.0的浮點數>
+}
+
+請只輸出 JSON，不含任何前言或說明。

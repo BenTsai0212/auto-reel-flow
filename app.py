@@ -1,6 +1,6 @@
 """
 AutoReel-Flow — Streamlit 前端介面
-MVP-1：劇本設計驗證
+MVP-1：劇本設計驗證（含 Framework DNA 策略分析 + 確認閘道）
 MVP-2：劇本設計 + 音軌生成驗證
 啟動：streamlit run app.py
 """
@@ -15,6 +15,7 @@ from dramaturgy.premise import run_premise, PipelineError
 from dramaturgy.architect import run_architect
 from dramaturgy.wordsmith import run_wordsmith
 from dramaturgy.director import run_director
+from dramaturgy.strategy import run_theme_analyzer, run_strategy_synthesizer
 
 OUTPUT_DIR = Path("outputs/contracts")
 
@@ -63,7 +64,10 @@ with st.sidebar:
         st.caption(f"熱度：{engagement_score}")
 
     st.divider()
-    run_btn = st.button("▶ 執行劇本 Pipeline", type="primary", use_container_width=True)
+    analyze_btn = st.button("🔍 分析主題（Strategy Layer）", type="secondary", use_container_width=True)
+    run_btn = st.button("▶ 執行劇本 Pipeline", type="primary", use_container_width=True,
+                        disabled=(st.session_state.get("framework_dna") is None
+                                  and not analyze_btn))
 
 
 # ── 狀態初始化 ────────────────────────────────────────────────
@@ -71,11 +75,123 @@ if "pipeline_state" not in st.session_state:
     st.session_state.pipeline_state = None
 if "audio_result" not in st.session_state:
     st.session_state.audio_result = None
+if "framework_dna" not in st.session_state:
+    st.session_state.framework_dna = None
+if "theme_dimension" not in st.session_state:
+    st.session_state.theme_dimension = None
+
+
+# ── Strategy Layer 分析 ───────────────────────────────────────
+if analyze_btn:
+    st.session_state.framework_dna = None
+    st.session_state.theme_dimension = None
+    st.session_state.pipeline_state = None
+    st.session_state.audio_result = None
+
+    keywords = [k.strip() for k in keywords_str.split(",") if k.strip()]
+    raw_content = {
+        "title": title,
+        "summary": summary,
+        "keywords": keywords,
+        "engagement_score": engagement_score,
+    }
+
+    with st.spinner("🔬 分析主題維度..."):
+        try:
+            theme_dim = run_theme_analyzer(raw_content)
+            st.session_state.theme_dimension = theme_dim
+        except PipelineError as e:
+            st.error(f"❌ 主題分析失敗：{e.reason}")
+            st.stop()
+
+    with st.spinner("🧠 合成框架策略..."):
+        try:
+            framework_dna = run_strategy_synthesizer(theme_dim)
+            st.session_state.framework_dna = framework_dna
+        except PipelineError as e:
+            st.error(f"❌ 策略合成失敗：{e.reason}")
+            st.stop()
+
+    st.rerun()
+
+
+# ── 確認閘道：顯示導演簡報 ──────────────────────────────────────
+framework_dna = st.session_state.framework_dna
+theme_dim = st.session_state.theme_dimension
+
+if framework_dna and not st.session_state.pipeline_state:
+    st.divider()
+
+    # 主題維度概覽
+    if theme_dim:
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("媒介類型", theme_dim.get("medium", "").replace("_", " ").title())
+        with col2:
+            st.metric("情緒基調", theme_dim.get("tone", "").replace("_", " ").title())
+        with col3:
+            st.metric("衝突軸", theme_dim.get("conflict_axis", "").replace("_", " ").title())
+
+        col4, col5, col6 = st.columns(3)
+        with col4:
+            st.metric("神話共鳴度", f"{theme_dim.get('myth_resonance', 0):.0%}")
+        with col5:
+            st.metric("知識傳遞比重", f"{theme_dim.get('knowledge_transfer', 0):.0%}")
+        with col6:
+            st.metric("節奏密度需求", f"{theme_dim.get('pace_requirement', 0):.0%}")
+
+    st.divider()
+
+    # Framework DNA 與導演簡報
+    col_dna, col_brief = st.columns([1, 2])
+
+    with col_dna:
+        st.subheader("📐 Framework DNA")
+        st.metric("主框架", framework_dna.get("primary_framework", "").replace("_", " ").title())
+        st.metric("場景數量", f"{framework_dna.get('scene_count', 4)} 幕")
+        st.caption(f"**故事形狀：** {framework_dna.get('story_shape', '')}")
+        st.caption(f"**情感弧線：** {framework_dna.get('emotional_arc', '')}")
+
+        # 框架權重
+        weights = framework_dna.get("weights", {})
+        if weights:
+            st.markdown("**框架混合比例：**")
+            for fw, w in sorted(weights.items(), key=lambda x: -x[1]):
+                if w > 0:
+                    pct = int(w * 100)
+                    label = fw.replace("_", " ").title()
+                    st.progress(w, text=f"{label}: {pct}%")
+
+        # 節拍結構
+        beats = framework_dna.get("beat_structure", [])
+        if beats:
+            with st.expander("節拍結構"):
+                for b in beats:
+                    st.markdown(f"**{b['beat_index']}.** {b['function']} `@{b['pct_of_story']}%`")
+
+    with col_brief:
+        st.subheader("🎬 導演簡報（Director's Brief）")
+        brief = framework_dna.get("director_brief", "")
+        st.info(brief)
+
+        st.markdown("---")
+        st.markdown("**確認後將以此框架策略執行劇本設計。**")
+        col_confirm, col_reset = st.columns(2)
+        with col_confirm:
+            if st.button("✅ 確認策略，開始生成劇本", type="primary", use_container_width=True):
+                # 觸發劇本 pipeline（標記已確認）
+                st.session_state._run_pipeline = True
+                st.rerun()
+        with col_reset:
+            if st.button("🔄 重新分析主題", use_container_width=True):
+                st.session_state.framework_dna = None
+                st.session_state.theme_dimension = None
+                st.rerun()
 
 
 # ── 劇本 Pipeline 執行 ────────────────────────────────────────
-if run_btn:
-    # 切換新一輪，清除上次音軌結果
+if st.session_state.get("_run_pipeline") and framework_dna:
+    st.session_state._run_pipeline = False
     st.session_state.audio_result = None
 
     keywords = [k.strip() for k in keywords_str.split(",") if k.strip()]
@@ -91,7 +207,9 @@ if run_btn:
         "project_id": project_id,
         "status": "running",
         "current_stage": "premise",
-        "contracts": {},
+        "contracts": {
+            "framework_dna": framework_dna,
+        },
         "errors": [],
     }
 
@@ -125,7 +243,7 @@ if run_btn:
 
     update_progress(1)
     try:
-        architect = run_architect(premise)
+        architect = run_architect(premise, framework_dna)
         state["contracts"]["architect"] = architect
     except PipelineError as e:
         state["status"] = "failed"
@@ -136,7 +254,7 @@ if run_btn:
 
     update_progress(2)
     try:
-        wordsmith = run_wordsmith(architect, premise)
+        wordsmith = run_wordsmith(architect, premise, framework_dna)
         state["contracts"]["wordsmith"] = wordsmith
     except PipelineError as e:
         state["status"] = "failed"
@@ -253,15 +371,31 @@ if state and state["status"] == "completed":
 
     # ── Tab 2: Architect ──────────────────────────────────────
     with tab2:
+        # Framework DNA 摘要
+        fw_dna = contracts.get("framework_dna", {})
+        if fw_dna:
+            col_fw1, col_fw2, col_fw3 = st.columns(3)
+            with col_fw1:
+                st.metric("主框架", fw_dna.get("primary_framework", "").replace("_", " ").title())
+            with col_fw2:
+                st.metric("場景數量", f"{architect.get('scenes', []).__len__()} 幕")
+            with col_fw3:
+                st.metric("故事弧線", architect.get("story_arc", "").upper())
+
         col1, col2 = st.columns([3, 1])
         with col1:
-            st.subheader("情緒曲線")
+            st.subheader("情緒曲線 + 場景電荷")
             scenes = architect.get("scenes", [])
             if scenes:
                 import altair as alt
                 import pandas as pd
                 df = pd.DataFrame([
-                    {"幕次": f"Scene {s['segment_id']}\n{s['role']}", "強度": s["intensity"]}
+                    {
+                        "幕次": f"Scene {s['segment_id']}\n{s['role']}",
+                        "強度": s["intensity"],
+                        "電荷": f"{s.get('v_start','?')}→{s.get('v_end','?')}",
+                        "能量": s.get("scene_energy", 0),
+                    }
                     for s in scenes
                 ])
                 chart = (
@@ -275,6 +409,7 @@ if state and state["status"] == "completed":
                             alt.value("#FF4B4B"),
                             alt.value("#4B8BFF"),
                         ),
+                        tooltip=["幕次", "強度", "電荷", "能量"],
                     )
                     .properties(height=250)
                 )
@@ -282,15 +417,29 @@ if state and state["status"] == "completed":
 
             st.subheader("場景骨架")
             for s in scenes:
-                with st.expander(f"Scene {s['segment_id']} — {s['role']} (intensity={s['intensity']})"):
+                v_start = s.get("v_start", "?")
+                v_end = s.get("v_end", "?")
+                energy = s.get("scene_energy", "?")
+                charge_label = f"電荷 {v_start}→{v_end} [E={energy}]"
+                with st.expander(
+                    f"Scene {s['segment_id']} — {s['role']} "
+                    f"(intensity={s['intensity']}) | {charge_label}"
+                ):
+                    st.markdown(f"**節拍標籤：** `{s.get('beat_label', s['role'])}`")
                     st.markdown(f"**戲劇功能：** {s['dramatic_function']}")
                     st.markdown(f"**情緒目標：** `{s['emotional_target']}`")
                     st.markdown(f"**時長預算：** {s['duration_budget']}")
                     st.markdown(f"**轉場方式：** `{s.get('transition_to_next', 'null')}`")
+                    col_v1, col_v2, col_v3 = st.columns(3)
+                    with col_v1:
+                        st.metric("V_start", v_start.title())
+                    with col_v2:
+                        st.metric("V_end", v_end.title())
+                    with col_v3:
+                        st.metric("Scene Energy", energy)
 
         with col2:
             st.subheader("全局設定")
-            st.metric("故事弧線", architect.get("story_arc", "").upper())
             st.metric("目標時長", architect.get("total_duration_target", ""))
             hook = architect.get("hook_strategy", {})
             st.markdown(f"**Hook 策略：** `{hook.get('type', '')}`")
@@ -303,6 +452,25 @@ if state and state["status"] == "completed":
     # ── Tab 3: Wordsmith ──────────────────────────────────────
     with tab3:
         ws_scenes = wordsmith.get("scenes", [])
+        char_profile = wordsmith.get("character_profile", {})
+
+        # 角色語音特質
+        if char_profile:
+            with st.expander("🎭 主角語音特質（Character Profile）"):
+                voice = char_profile.get("protagonist_voice", {})
+                col_v1, col_v2 = st.columns(2)
+                with col_v1:
+                    st.markdown(f"**說話模式：** {voice.get('speech_pattern', '')}")
+                    st.markdown(f"**詞彙層次：** {voice.get('vocabulary_level', '')}")
+                    st.markdown("**範例短語：** " + " / ".join(
+                        f"`{p}`" for p in voice.get("sample_phrases", [])
+                    ))
+                with col_v2:
+                    st.markdown(f"**核心缺陷：** {char_profile.get('core_flaw', '')}")
+                    st.markdown(f"**隱藏動機：** {char_profile.get('hidden_motivation', '')}")
+                    st.markdown("**說不出口的事：**")
+                    for item in char_profile.get("cannot_say_directly", []):
+                        st.markdown(f"- {item}")
 
         st.subheader("Naturalness Score 總覽")
         score_cols = st.columns(len(ws_scenes))
@@ -323,8 +491,9 @@ if state and state["status"] == "completed":
         for scene in ws_scenes:
             score = scene.get("naturalness_score", 0)
             score_badge = f"✅ {score}" if score and score >= 70 else f"⚠️ {score}"
+            beat_label = scene.get("beat_label", scene.get("role", ""))
             with st.expander(
-                f"Scene {scene['segment_id']} — {scene['role']} | naturalness={score_badge} | {scene['duration_est']}"
+                f"Scene {scene['segment_id']} — {beat_label} | naturalness={score_badge} | {scene['duration_est']}"
             ):
                 st.markdown("**原始文案（raw）**")
                 st.markdown(
@@ -333,7 +502,7 @@ if state and state["status"] == "completed":
                     f"{scene['voice_script']['raw']}</div>",
                     unsafe_allow_html=True,
                 )
-                st.markdown("**TTS 標記版本（annotated）**")
+                st.markdown("**TTS 標記版本（Dialogue Assassin 後處理）**")
                 st.code(scene["voice_script"]["annotated"], language=None)
 
                 col1, col2 = st.columns(2)
@@ -379,8 +548,9 @@ if state and state["status"] == "completed":
         st.subheader("場景視聽指令")
 
         for scene in dir_scenes:
+            beat_label = scene.get("beat_label", scene.get("role", ""))
             with st.expander(
-                f"Scene {scene['segment_id']} — {scene['role']} | {scene['visual']['shot_type']} | {scene['duration_est']}"
+                f"Scene {scene['segment_id']} — {beat_label} | {scene['visual']['shot_type']} | {scene['duration_est']}"
             ):
                 col1, col2, col3 = st.columns(3)
                 with col1:
@@ -428,7 +598,7 @@ if state and state["status"] == "completed":
             for i, audio_path in enumerate(scene_files):
                 scene_info = dir_scenes_list[i] if i < len(dir_scenes_list) else {}
                 seg_id = scene_info.get("segment_id", i + 1)
-                role = scene_info.get("role", "")
+                role = scene_info.get("beat_label", scene_info.get("role", ""))
                 dur = scene_info.get("duration_est", "")
                 label = f"Scene {seg_id} — {role} | {dur}"
 
@@ -492,19 +662,26 @@ elif state and state["status"] == "failed":
         st.markdown(f"**Stage:** `{err['stage']}`")
         st.markdown(f"**原因：** {err['reason']}")
 
-else:
+elif not framework_dna:
     col1, col2 = st.columns(2)
     with col1:
-        st.info("👈 在左側選擇 MVP 階段，填入內容後按「執行劇本 Pipeline」開始驗證。")
+        st.info("👈 在左側填入主題內容後，按「🔍 分析主題」開始框架策略分析。")
     with col2:
-        with st.expander("關於各 MVP 階段"):
+        with st.expander("使用說明"):
             st.markdown("""
-            **MVP-1 劇本設計層**
-            - Premise → Architect → Wordsmith → Director
-            - 驗證劇本品質與情緒曲線
+            **Step 1：分析主題**
+            - 填入標題、摘要、關鍵詞
+            - 按「🔍 分析主題（Strategy Layer）」
+            - 系統自動分析最適框架配方
 
-            **MVP-2 音軌生成層**
-            - 在 MVP-1 基礎上，生成語音音檔
-            - ElevenLabs TTS → 合併音檔 → Whisper 字幕對齊
-            - 需設定 `ELEVENLABS_API_KEY` 與 `ELEVENLABS_VOICE_ID`
+            **Step 2：確認導演簡報**
+            - 閱讀框架策略與情感弧線描述
+            - 確認後開始生成劇本
+
+            **Step 3：查看劇本結果**
+            - Architect Tab 顯示場景電荷（v_start/v_end）
+            - Wordsmith Tab 顯示角色語音特質與文案
+
+            **MVP-2：生成音軌**
+            - 需設定 `ELEVENLABS_API_KEY`
             """)

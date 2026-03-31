@@ -62,11 +62,13 @@ def validate_architect(contract: dict[str, Any], premise_contract: dict[str, Any
     """
     驗證 Architect Contract。
     規則：
-    - Hook intensity 在 0.5–0.7
+    - 第一幕（Hook/Opening）intensity 在 0.5–0.7
     - 至少一幕 intensity >= 0.85
-    - Reward intensity < 全片最高點
+    - 最後一幕（Reward/Resolution）intensity < 全片最高點
     - 總時長 45–90 秒
     - forbidden_enforced 必須包含 premise 的所有 forbidden
+    - 每個場景 scene_energy > 0（麥基鴻溝理論：無死場景）
+    - 中點場景必須有電荷翻轉（v_start ≠ v_end）
     """
     violations = []
     scenes = contract.get("scenes", [])
@@ -76,28 +78,31 @@ def validate_architect(contract: dict[str, Any], premise_contract: dict[str, Any
         raise ValidationError("architect", violations)
 
     intensities = [s.get("intensity", 0) for s in scenes]
-    hook = scenes[0]
+    first_scene = scenes[0]
+    last_scene = scenes[-1]
 
-    hook_intensity = hook.get("intensity", 0)
-    if not (0.5 <= hook_intensity <= 0.7):
+    # 第一幕強度範圍檢查（不能一開始就爆發）
+    first_intensity = first_scene.get("intensity", 0)
+    if not (0.5 <= first_intensity <= 0.7):
         violations.append(
-            f"Hook intensity must be 0.5–0.7 (got {hook_intensity})"
+            f"First scene intensity must be 0.5–0.7 (got {first_intensity})"
         )
 
+    # 全片必須有情緒高峰
     max_intensity = max(intensities)
     if max_intensity < 0.85:
         violations.append(
             f"At least one scene must have intensity >= 0.85 (max is {max_intensity})"
         )
 
-    reward_scenes = [s for s in scenes if s.get("role") == "Reward"]
-    if reward_scenes:
-        reward_intensity = reward_scenes[-1].get("intensity", 0)
-        if reward_intensity >= max_intensity:
-            violations.append(
-                f"Reward intensity ({reward_intensity}) must be < max intensity ({max_intensity})"
-            )
+    # 最後一幕必須低於高峰（結尾降溫）
+    last_intensity = last_scene.get("intensity", 0)
+    if last_intensity >= max_intensity:
+        violations.append(
+            f"Last scene intensity ({last_intensity}) must be < max intensity ({max_intensity})"
+        )
 
+    # 總時長範圍
     try:
         total_seconds = sum(
             _parse_seconds(s.get("duration_budget", "0s")) for s in scenes
@@ -109,11 +114,33 @@ def validate_architect(contract: dict[str, Any], premise_contract: dict[str, Any
     except ValueError as e:
         violations.append(f"Duration parse error: {e}")
 
+    # forbidden_enforced 繼承檢查
     premise_forbidden = set(premise_contract.get("story_constraints", {}).get("forbidden", []))
     enforced = set(contract.get("forbidden_enforced", []))
     missing = premise_forbidden - enforced
     if missing:
         violations.append(f"forbidden_enforced missing items from premise: {missing}")
+
+    # 場景電荷驗證（麥基 Gap Theory）：每個場景 scene_energy > 0
+    for scene in scenes:
+        seg_id = scene.get("segment_id", "?")
+        energy = scene.get("scene_energy")
+        if energy is not None and energy <= 0:
+            violations.append(
+                f"Scene {seg_id}: scene_energy must be > 0 (got {energy}) — "
+                f"v_start='{scene.get('v_start')}' equals v_end='{scene.get('v_end')}' is a dead scene"
+            )
+
+    # 中點場景電荷翻轉（最重要的轉折）
+    if len(scenes) >= 3:
+        midpoint = scenes[len(scenes) // 2]
+        mid_v_start = midpoint.get("v_start")
+        mid_v_end = midpoint.get("v_end")
+        if mid_v_start and mid_v_end and mid_v_start == mid_v_end:
+            violations.append(
+                f"Midpoint scene (segment {midpoint.get('segment_id', '?')}) "
+                f"must have a charge reversal (v_start ≠ v_end), got both '{mid_v_start}'"
+            )
 
     if violations:
         raise ValidationError("architect", violations)

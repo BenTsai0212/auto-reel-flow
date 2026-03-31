@@ -72,10 +72,29 @@ def _build_scene_prompt(
     forbidden_phrases: list[str],
     forbidden_enforced: list[str],
     protagonist_voice: dict,
+    used_oral_hooks: list[str] | None = None,
+    previous_scenes_raw: list[str] | None = None,
     flags: list[str] | None = None,
 ) -> str:
     template = _load_prompt("wordsmith_scene.txt")
     protagonist_voice_str = json.dumps(protagonist_voice, ensure_ascii=False, indent=2)
+
+    # 格式化已用口頭禪清單
+    if used_oral_hooks:
+        hooks_str = "、".join(f"「{h}」" for h in used_oral_hooks)
+        hooks_display = f"以下詞彙已在前幕使用，本幕禁止再次出現：{hooks_str}"
+    else:
+        hooks_display = "（這是第一幕，口頭禪工具庫全部可用）"
+
+    # 格式化前幕內容摘要
+    if previous_scenes_raw:
+        prev_display = "\n".join(
+            f"第{i+1}幕：{raw[:120]}{'...' if len(raw) > 120 else ''}"
+            for i, raw in enumerate(previous_scenes_raw)
+        )
+    else:
+        prev_display = "（這是第一幕，尚無前幕內容）"
+
     prompt = (
         template
         .replace("{{segment_id}}", str(arch_scene.get("segment_id", "")))
@@ -92,6 +111,8 @@ def _build_scene_prompt(
         .replace("{{forbidden_phrases}}", json.dumps(forbidden_phrases, ensure_ascii=False))
         .replace("{{forbidden_enforced}}", json.dumps(forbidden_enforced, ensure_ascii=False))
         .replace("{{protagonist_voice}}", protagonist_voice_str)
+        .replace("{{used_oral_hooks}}", hooks_display)
+        .replace("{{previous_scenes_raw}}", prev_display)
     )
     if flags:
         prompt += f"\n\n【前次評審 flags，請針對以下問題修正】\n" + "\n".join(f"- {f}" for f in flags)
@@ -154,6 +175,8 @@ def _run_single_scene(
     forbidden_phrases: list[str],
     forbidden_enforced: list[str],
     protagonist_voice: dict,
+    used_oral_hooks: list[str] | None = None,
+    previous_scenes_raw: list[str] | None = None,
 ) -> dict:
     """對單一幕執行 Wordsmith + naturalness 評審 + Dialogue Assassin，帶重試。"""
     system_prompt = _load_prompt("wordsmith_system.txt")
@@ -164,6 +187,8 @@ def _run_single_scene(
         user_prompt = _build_scene_prompt(
             arch_scene, dominant_tone, forbidden_phrases, forbidden_enforced,
             protagonist_voice,
+            used_oral_hooks=used_oral_hooks,
+            previous_scenes_raw=previous_scenes_raw,
             flags=flags if attempt > 1 else None,
         )
         raw_response = _call_llm(system_prompt, user_prompt)
@@ -225,12 +250,26 @@ def run_wordsmith(
     protagonist_voice = character_profile.get("protagonist_voice", {})
 
     completed_scenes = []
+    used_oral_hooks: list[str] = []     # 跨幕追蹤：已用過的口頭禪
+    previous_scenes_raw: list[str] = [] # 跨幕追蹤：前幕的原始文案
+
     for arch_scene in arch_scenes:
         scene = _run_single_scene(
             arch_scene, dominant_tone, forbidden_phrases, forbidden_enforced,
             protagonist_voice,
+            used_oral_hooks=used_oral_hooks,
+            previous_scenes_raw=previous_scenes_raw,
         )
         completed_scenes.append(scene)
+
+        # 更新跨幕狀態，供下一幕使用
+        new_hooks = scene.get("language_markers", {}).get("oral_hooks", [])
+        for hook in new_hooks:
+            if hook and hook not in used_oral_hooks:
+                used_oral_hooks.append(hook)
+        raw_script = scene.get("voice_script", {}).get("raw", "")
+        if raw_script:
+            previous_scenes_raw.append(raw_script)
 
     contract = {
         "wordsmith_id": f"ws_{uuid.uuid4().hex[:8]}",

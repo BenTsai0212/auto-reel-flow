@@ -13,4 +13,4 @@ MAX_RETRIES = 3
 NATURALNESS_THRESHOLD = 70
 
 # MVP-2: Audio Pipeline
-WHISPER_MODEL = os.getenv("WHISPER_MODEL", "base")  # "base" 或 "small"
+WHISPER_MODEL = os.getenv("WHISPER_MODEL", "small")  # "small" 對繁體中文精度顯著優於 "base"

@@ -20,6 +20,19 @@
 主角語音特質（你的文案必須符合這個聲音）：
 {{protagonist_voice}}
 
+【前幕已使用的口頭禪——本幕禁止再次出現】
+{{used_oral_hooks}}
+（若清單為空，表示這是第一幕，口頭禪工具庫全部可用）
+
+【前幕已涵蓋的內容——本幕必須推進，不得重複】
+{{previous_scenes_raw}}
+（若為空，表示這是第一幕）
+
+不重複原則：
+- 前幕已提出的論點、例子、數據，本幕一律不得重複
+- 本幕必須從不同角度切入，或深入前幕未展開的面向
+- 故事需持續推進：每一幕應讓觀眾知道比上一幕「更多」，而非重申相同的訊息
+
 寫作規則：
 1. voice_script.raw 是純文字，供人工閱讀評審
 2. voice_script.annotated 包含 [pause:Xs] 標記，供 TTS 使用
@@ -27,9 +40,9 @@
 4. intensity 需與場景指定值誤差 ≤ 0.05
 5. 絕對不能出現 forbidden_phrases 中的任何詞彙
 6. 場景必須體現電荷變化：從 {{v_start}} 狀態過渡到 {{v_end}} 狀態
-   （若 v_start=positive → v_end=negative，文案應讓觀眾從正面期待轉為不安或衝擊）
 7. 文案的說話方式必須符合主角語音特質的 speech_pattern 和 sample_phrases 風格
 8. 主角「說不出口的事」（cannot_say_directly）必須透過行為、細節或停頓來暗示，絕對不能直白陳述
+9. 在 oral_hooks 欄位列出本幕實際使用的口語詞，供下一幕避開
 
 輸出單一場景物件（非陣列）：
 {
@@ -43,7 +56,7 @@
     "annotated": "<含 [pause:Xs] 的文案，停頓位置必須有語義意義>"
   },
   "language_markers": {
-    "oral_hooks": ["<使用的口語鉤子>"],
+    "oral_hooks": ["<本幕實際用到的口語詞，如有>"],
     "pause_count": <整數>,
     "avg_sentence_length": <平均字數>,
     "rhetorical_device": "<rhetorical_question|preemptive_defense|contrast_pivot|concrete_anchor|second_person_mirror|open_loop>"

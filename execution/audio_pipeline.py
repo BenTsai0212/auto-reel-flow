@@ -160,11 +160,18 @@ def align_with_whisper(
     model = whisper.load_model(WHISPER_MODEL)
 
     logger.info(f"執行 Whisper 句級對齊：{audio_path}")
+    # 繁體中文優化設定：
+    # - condition_on_previous_text=False：防止辨識錯誤連鎖傳播（一字錯影響後續）
+    # - temperature=0：確定性輸出，減少隨機同音字錯誤
+    # - initial_prompt：以繁體中文前綴開頭，引導 Whisper 選字偏向繁體
+    tw_prompt = "以下是繁體中文旁白文稿：" + (initial_prompt or "")
     result = model.transcribe(
         str(audio_path),
         language="zh",
         verbose=False,
-        initial_prompt=initial_prompt or None,
+        initial_prompt=tw_prompt,
+        condition_on_previous_text=False,
+        temperature=0,
     )
 
     segments = result.get("segments", [])

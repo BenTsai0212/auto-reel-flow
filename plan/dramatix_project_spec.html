@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>DRAMATIX — Agentic Narrative Intelligence System · 專案規劃書</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07090f;
+  --surface:#0d1117;
+  --card:#111827;
+  --border:#1e2a3a;
+  --border2:#263040;
+  --blue:#00aaff;
+  --cyan:#00d4c8;
+  --violet:#7c5cfc;
+  --amber:#f5b942;
+  --rose:#f04060;
+  --green:#22d3a0;
+  --text:#d8e4f0;
+  --muted:#526070;
+  --dim:#2a3848;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;font-size:14px;line-height:1.75}
+
+/* ── SCAN LINE TEXTURE ── */
+body::before{
+  content:'';pointer-events:none;
+  position:fixed;inset:0;z-index:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,170,255,0.012) 2px,rgba(0,170,255,0.012) 4px);
+}
+
+/* ── STICKY NAV ── */
+nav{
+  position:sticky;top:0;z-index:200;
+  background:rgba(7,9,15,0.92);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;
+  padding:0 32px;height:52px;
+  gap:32px;
+}
+.nav-logo{
+  font-family:'Syne',sans-serif;
+  font-weight:800;font-size:16px;
+  letter-spacing:2px;
+  background:linear-gradient(90deg,var(--blue),var(--violet));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  white-space:nowrap;
+}
+.nav-links{display:flex;gap:24px;flex:1;overflow-x:auto}
+.nav-links a{
+  color:var(--muted);font-size:12px;
+  text-decoration:none;white-space:nowrap;
+  letter-spacing:0.5px;transition:color 0.2s;
+}
+.nav-links a:hover{color:var(--blue)}
+.nav-badge{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;padding:4px 10px;
+  border-radius:4px;
+  background:rgba(124,92,252,0.15);
+  border:1px solid rgba(124,92,252,0.3);
+  color:var(--violet);
+  white-space:nowrap;
+}
+
+/* ── HERO ── */
+.hero{
+  min-height:88vh;display:flex;align-items:center;
+  padding:80px 40px;position:relative;overflow:hidden;
+}
+.hero-bg{
+  position:absolute;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse 100% 60% at 60% 40%,rgba(0,170,255,0.06) 0%,transparent 65%),
+    radial-gradient(ellipse 70% 50% at 10% 70%,rgba(124,92,252,0.07) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 40% at 90% 80%,rgba(34,211,160,0.05) 0%,transparent 55%);
+}
+/* grid lines */
+.hero-bg::after{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(0,170,255,0.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,170,255,0.04) 1px,transparent 1px);
+  background-size:60px 60px;
+}
+.hero-inner{position:relative;z-index:1;max-width:1100px;margin:0 auto;width:100%}
+.hero-eyebrow{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;letter-spacing:4px;color:var(--muted);
+  text-transform:uppercase;margin-bottom:24px;
+  display:flex;align-items:center;gap:12px;
+}
+.hero-eyebrow::before{content:'';width:40px;height:1px;background:var(--blue)}
+.hero-title{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(36px,6vw,72px);
+  font-weight:800;line-height:1.05;
+  margin-bottom:10px;
+}
+.hero-title .t1{color:white}
+.hero-title .t2{
+  background:linear-gradient(90deg,var(--blue) 0%,var(--violet) 60%,var(--cyan) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.hero-subtitle{
+  font-family:'JetBrains Mono',monospace;
+  font-size:13px;color:var(--cyan);
+  letter-spacing:2px;margin-bottom:28px;
+}
+.hero-desc{
+  font-size:16px;color:rgba(216,228,240,0.65);
+  max-width:680px;line-height:2;margin-bottom:44px;
+}
+.hero-kpis{
+  display:flex;flex-wrap:wrap;gap:20px;
+}
+.kpi{
+  background:rgba(255,255,255,0.03);
+  border:1px solid var(--border2);
+  border-radius:12px;
+  padding:18px 24px;
+  min-width:160px;
+}
+.kpi-val{
+  font-family:'Syne',sans-serif;
+  font-size:28px;font-weight:700;
+  background:linear-gradient(135deg,var(--blue),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.kpi-label{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:4px}
+
+/* ── LAYOUT ── */
+.page{max-width:1100px;margin:0 auto;padding:0 32px}
+
+/* ── SECTION ── */
+.section{padding:72px 0 56px}
+.section-tag{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;letter-spacing:4px;color:var(--blue);
+  text-transform:uppercase;margin-bottom:10px;
+  display:flex;align-items:center;gap:10px;
+}
+.section-tag::before{content:'';width:20px;height:1px;background:var(--blue)}
+.section h2{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(22px,3vw,34px);
+  font-weight:700;color:white;
+  margin-bottom:10px;line-height:1.2;
+}
+.section-intro{
+  font-size:14px;color:var(--muted);
+  max-width:720px;line-height:1.9;
+  margin-bottom:40px;
+}
+.divider{border:none;border-top:1px solid var(--border);margin:0}
+
+/* ── INSIGHT BOX ── */
+.insight{
+  background:rgba(124,92,252,0.06);
+  border:1px solid rgba(124,92,252,0.2);
+  border-left:3px solid var(--violet);
+  border-radius:0 12px 12px 0;
+  padding:20px 24px;margin:24px 0;
+  font-size:13px;line-height:1.85;
+  color:rgba(216,228,240,0.8);
+}
+.insight strong{color:var(--violet)}
+.insight-header{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:3px;color:var(--violet);
+  text-transform:uppercase;margin-bottom:8px;opacity:0.7;
+}
+
+.warn{
+  background:rgba(245,185,66,0.06);
+  border:1px solid rgba(245,185,66,0.2);
+  border-left:3px solid var(--amber);
+  border-radius:0 12px 12px 0;
+  padding:20px 24px;margin:24px 0;
+  font-size:13px;line-height:1.85;
+  color:rgba(216,228,240,0.75);
+}
+.warn strong{color:var(--amber)}
+
+/* ── CARDS ── */
+.card-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:20px;margin:28px 0;
+}
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:28px 24px;
+  position:relative;overflow:hidden;
+  transition:border-color 0.2s,transform 0.2s;
+}
+.card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.card-accent{
+  position:absolute;top:0;left:0;right:0;height:2px;
+}
+.card h3{
+  font-family:'Syne',sans-serif;
+  font-size:16px;font-weight:700;color:white;
+  margin-bottom:10px;margin-top:10px;
+}
+.card p{font-size:13px;color:var(--muted);line-height:1.8}
+
+/* ── PHASE BLOCKS ── */
+.phase-block{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:20px;
+  overflow:hidden;
+  margin-bottom:32px;
+}
+.phase-header{
+  padding:24px 32px;
+  display:flex;align-items:center;gap:20px;
+  border-bottom:1px solid var(--border);
+}
+.phase-num{
+  font-family:'Syne',sans-serif;
+  font-size:13px;font-weight:800;
+  letter-spacing:2px;
+  width:44px;height:44px;
+  border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.phase-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:white}
+.phase-sub{font-size:12px;color:var(--muted);margin-top:3px}
+.phase-body{padding:28px 32px}
+
+/* ── AGENT SPEC ── */
+.agent-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+  gap:20px;
+}
+.agent-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:14px;
+  overflow:hidden;
+}
+.agent-head{
+  padding:18px 22px;
+  display:flex;align-items:center;gap:14px;
+  border-bottom:1px solid var(--border);
+}
+.agent-icon{
+  width:44px;height:44px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;flex-shrink:0;
+}
+.agent-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:white}
+.agent-en{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px}
+.agent-body{padding:18px 22px}
+.agent-row{
+  display:flex;gap:10px;padding:8px 0;
+  border-bottom:1px solid var(--border);
+  font-size:12px;
+}
+.agent-row:last-child{border-bottom:none}
+.agent-row-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;letter-spacing:1px;
+  color:var(--muted);min-width:80px;
+  padding-top:2px;
+}
+.agent-row-val{color:rgba(216,228,240,0.8);line-height:1.7}
+
+/* ── FLOW DIAGRAM ── */
+.flow-wrap{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:32px;
+  overflow-x:auto;
+  margin:28px 0;
+}
+
+/* ── USER JOURNEY ── */
+.journey-steps{
+  display:flex;gap:0;
+  position:relative;
+  margin:32px 0;
+  flex-wrap:wrap;
+}
+.step{
+  flex:1;min-width:180px;
+  padding:24px 20px;
+  background:var(--card);
+  border-top:2px solid;
+  position:relative;
+  text-align:center;
+}
+.step-num{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;color:var(--muted);
+  letter-spacing:2px;margin-bottom:10px;
+}
+.step-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:white;margin-bottom:6px}
+.step-desc{font-size:12px;color:var(--muted);line-height:1.6}
+.step-arrow{
+  position:absolute;right:-12px;top:50%;transform:translateY(-50%);
+  font-size:18px;color:var(--muted);z-index:1;
+}
+@media(max-width:700px){.step-arrow{display:none}}
+
+/* ── TECH STACK ── */
+.stack-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:16px;margin:24px 0;
+}
+.stack-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:20px 20px;
+}
+.stack-layer{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:3px;color:var(--muted);
+  text-transform:uppercase;margin-bottom:10px;
+}
+.stack-items{display:flex;flex-direction:column;gap:8px}
+.stack-item{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 12px;border-radius:8px;
+  background:rgba(255,255,255,0.025);
+  border:1px solid var(--border);
+  font-size:12px;
+}
+.stack-item span{flex:1;color:rgba(216,228,240,0.7)}
+.stack-note{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+
+/* ── RISK TABLE ── */
+.risk-table{width:100%;border-collapse:collapse;font-size:13px;margin:24px 0}
+.risk-table th{
+  padding:10px 16px;text-align:left;
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--muted);border-bottom:1px solid var(--border);
+}
+.risk-table td{
+  padding:14px 16px;border-bottom:1px solid var(--border);
+  vertical-align:top;line-height:1.7;
+}
+.risk-table tr:hover td{background:rgba(255,255,255,0.015)}
+.risk-level{
+  padding:3px 10px;border-radius:20px;
+  font-size:10px;font-weight:700;
+  font-family:'JetBrains Mono',monospace;
+  white-space:nowrap;
+}
+.rl-high{background:rgba(240,64,96,0.15);border:1px solid rgba(240,64,96,0.3);color:var(--rose)}
+.rl-mid{background:rgba(245,185,66,0.12);border:1px solid rgba(245,185,66,0.25);color:var(--amber)}
+.rl-low{background:rgba(34,211,160,0.1);border:1px solid rgba(34,211,160,0.2);color:var(--green)}
+
+/* ── ROADMAP ── */
+.roadmap{display:flex;flex-direction:column;gap:0;margin:28px 0}
+.milestone{
+  display:grid;grid-template-columns:120px 1fr;
+  gap:0;border-bottom:1px solid var(--border);
+}
+.ms-label{
+  padding:20px 24px;
+  border-right:1px solid var(--border);
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;color:var(--muted);
+  display:flex;flex-direction:column;justify-content:center;gap:4px;
+}
+.ms-phase-dot{
+  width:8px;height:8px;border-radius:50%;
+  margin-bottom:6px;
+}
+.ms-content{padding:20px 28px}
+.ms-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:white;margin-bottom:6px}
+.ms-items{
+  display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;
+}
+.ms-item{
+  background:rgba(255,255,255,0.03);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:4px 10px;
+  font-size:11px;
+  color:var(--muted);
+}
+
+/* ── FRAMEWORK DNA VIZ ── */
+.dna-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:20px;margin:24px 0;
+}
+.dna-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:14px;padding:22px;
+}
+.dna-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:white;margin-bottom:16px}
+.dna-bar-row{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:10px;
+}
+.dna-fw-name{font-size:11px;color:var(--muted);min-width:100px;font-family:'JetBrains Mono',monospace}
+.dna-bar-bg{flex:1;height:6px;background:var(--dim);border-radius:3px;overflow:hidden}
+.dna-bar-fill{height:100%;border-radius:3px;transition:width 0.8s ease}
+.dna-pct{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);min-width:32px;text-align:right}
+.dna-tag{font-size:10px;color:var(--muted);margin-top:4px;padding:3px 8px;background:var(--dim);border-radius:4px;display:inline-block}
+
+/* ── CODE BLOCK ── */
+.code-block{
+  background:#080e18;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:20px 24px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;
+  color:#8cb4d4;
+  overflow-x:auto;
+  line-height:1.9;
+  margin:20px 0;
+}
+.code-block .k{color:var(--violet)}
+.code-block .s{color:#7ec88c}
+.code-block .n{color:var(--cyan)}
+.code-block .c{color:#3a5070;font-style:italic}
+.code-block .v{color:var(--amber)}
+
+/* ── TAG ── */
+.tag{
+  display:inline-block;padding:2px 9px;
+  border-radius:4px;font-size:11px;
+  font-weight:600;margin:2px;
+}
+.tag-blue{background:rgba(0,170,255,0.12);border:1px solid rgba(0,170,255,0.25);color:var(--blue)}
+.tag-violet{background:rgba(124,92,252,0.12);border:1px solid rgba(124,92,252,0.25);color:var(--violet)}
+.tag-green{background:rgba(34,211,160,0.1);border:1px solid rgba(34,211,160,0.2);color:var(--green)}
+.tag-amber{background:rgba(245,185,66,0.1);border:1px solid rgba(245,185,66,0.2);color:var(--amber)}
+.tag-rose{background:rgba(240,64,96,0.1);border:1px solid rgba(240,64,96,0.2);color:var(--rose)}
+
+/* ── COMPARISON ── */
+.compare{
+  display:grid;grid-template-columns:1fr 1fr;gap:20px;
+  margin:24px 0;
+}
+@media(max-width:600px){.compare{grid-template-columns:1fr}}
+.compare-col{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;padding:22px;
+}
+.compare-col h4{font-size:13px;font-weight:700;margin-bottom:14px}
+.compare-item{
+  display:flex;gap:10px;padding:8px 0;
+  border-bottom:1px solid var(--border);font-size:12px;
+  color:var(--muted);
+}
+.compare-item:last-child{border-bottom:none}
+.compare-item::before{content:'→';color:var(--blue);flex-shrink:0}
+
+/* responsive */
+@media(max-width:600px){
+  .hero{padding:60px 20px}
+  .page{padding:0 20px}
+  nav{padding:0 20px;gap:16px}
+  .milestone{grid-template-columns:1fr}
+  .ms-label{border-right:none;border-bottom:1px solid var(--border);padding:12px 20px}
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav>
+  <div class="nav-logo">DRAMATIX</div>
+  <div class="nav-links">
+    <a href="#vision">專案願景</a>
+    <a href="#architecture">系統架構</a>
+    <a href="#phase1">策略層</a>
+    <a href="#phase2">生成層</a>
+    <a href="#agents">Agent 規格</a>
+    <a href="#ux">使用者流程</a>
+    <a href="#stack">技術選型</a>
+    <a href="#risks">風險評估</a>
+    <a href="#roadmap">實施路徑</a>
+    <a href="#insights">設計見解</a>
+  </div>
+  <div class="nav-badge">v0.1 · 專案規劃書</div>
+</nav>
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-inner">
+    <div class="hero-eyebrow">Agentic Narrative Intelligence System</div>
+    <div class="hero-title">
+      <div class="t1">DRAMATIX</div>
+      <div class="t2">智能敘事引擎</div>
+    </div>
+    <div class="hero-subtitle">THEME IN → STRATEGY CONFIRM → STORY OUT</div>
+    <p class="hero-desc">
+      一套以 Agent 協作為核心的自動化敘事生產系統。使用者只需輸入主題，系統自動分析內容性質、合成最佳框架混合策略，並在使用者確認後驅動多個專業 Agent 協同生成具備故事能量、亞文本與電荷張力的劇本內容。
+    </p>
+    <div class="hero-kpis">
+      <div class="kpi"><div class="kpi-val">2</div><div class="kpi-label">系統層次</div></div>
+      <div class="kpi"><div class="kpi-val">9</div><div class="kpi-label">核心 Agent</div></div>
+      <div class="kpi"><div class="kpi-val">1</div><div class="kpi-label">使用者確認點</div></div>
+      <div class="kpi"><div class="kpi-val">∞</div><div class="kpi-label">框架混合組合</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+
+<!-- ══ VISION ══ -->
+<div class="section" id="vision">
+  <div class="section-tag">00 · 專案願景</div>
+  <h2>為什麼需要「策略 Agent」作為前置層？</h2>
+  <p class="section-intro">現有的 AI 劇本系統有一個根本性的問題：框架是由使用者選擇的，而大多數使用者並不是編劇。這個前提假設既不合理，也不可擴展。DRAMATIX 的核心主張是：<strong style="color:white">框架選擇本身也是一個可以被 AI 完成的推理任務</strong>，而且這個推理步驟應該對使用者透明、可調整。</p>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-accent" style="background:linear-gradient(90deg,var(--blue),transparent)"></div>
+      <div style="font-size:28px;margin-bottom:8px">🎯</div>
+      <h3>問題：框架選擇的認知負擔</h3>
+      <p>要求使用者在輸入主題前先學會 Save the Cat、英雄旅程、麥基框架，等同於要求病患在就診前先學會診斷學。策略 Agent 應該扮演「敘事診斷師」的角色，而非讓使用者自學。</p>
+    </div>
+    <div class="card">
+      <div class="card-accent" style="background:linear-gradient(90deg,var(--violet),transparent)"></div>
+      <div style="font-size:28px;margin-bottom:8px">⚡</div>
+      <h3>解法：框架 DNA 的動態合成</h3>
+      <p>不同主題天然對應不同框架組合比例——「電流大戰」需要 70% 英雄旅程 + 30% 麥基電荷；「深夜的 LINE 訊息」需要 60% STC + 40% 麥基鴻溝。這個比例配方就是「Framework DNA」。</p>
+    </div>
+    <div class="card">
+      <div class="card-accent" style="background:linear-gradient(90deg,var(--green),transparent)"></div>
+      <div style="font-size:28px;margin-bottom:8px">🤝</div>
+      <h3>設計原則：透明但不繁瑣</h3>
+      <p>使用者確認環節必須是「導演簡報」而非「技術審查」——系統展示策略的<em>效果</em>（「這個組合會讓故事在中點產生最大的情感翻轉」），而非暴露底層的技術細節。</p>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ══ ARCHITECTURE ══ -->
+<div class="section" id="architecture">
+  <div class="section-tag">01 · 系統架構</div>
+  <h2>雙層架構：策略智能層 ＋ 故事生成層</h2>
+  <p class="section-intro">系統分為兩個根本不同性質的層次：策略層負責「<strong style="color:white">如何講</strong>」的決策，生成層負責「<strong style="color:white">把它講出來</strong>」的執行。兩層之間只有一個使用者確認點，保持流程的流暢性。</p>
+
+  <div class="flow-wrap">
+    <svg viewBox="0 0 980 580" xmlns="http://www.w3.org/2000/svg" style="width:100%;min-width:680px;font-family:'Noto Sans TC',sans-serif">
+      <defs>
+        <marker id="arr" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+          <path d="M0,1 L7,4 L0,7 Z" fill="#00aaff" opacity="0.7"/>
+        </marker>
+        <marker id="arr-g" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+          <path d="M0,1 L7,4 L0,7 Z" fill="#22d3a0" opacity="0.7"/>
+        </marker>
+        <marker id="arr-v" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+          <path d="M0,1 L7,4 L0,7 Z" fill="#7c5cfc" opacity="0.7"/>
+        </marker>
+        <linearGradient id="stratGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#00aaff" stop-opacity="0.15"/>
+          <stop offset="100%" stop-color="#7c5cfc" stop-opacity="0.15"/>
+        </linearGradient>
+        <linearGradient id="genGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#22d3a0" stop-opacity="0.1"/>
+          <stop offset="100%" stop-color="#00aaff" stop-opacity="0.1"/>
+        </linearGradient>
+      </defs>
+
+      <!-- Layer labels background -->
+      <rect x="10" y="60" width="960" height="200" rx="12" fill="url(#stratGrad)" stroke="#00aaff" stroke-width="0.5" opacity="0.5"/>
+      <rect x="10" y="310" width="960" height="240" rx="12" fill="url(#genGrad)" stroke="#22d3a0" stroke-width="0.5" opacity="0.5"/>
+      <text x="20" y="84" font-size="9" fill="#00aaff" opacity="0.6" letter-spacing="3" font-family="JetBrains Mono, monospace">LAYER 1 · STRATEGY INTELLIGENCE</text>
+      <text x="20" y="328" font-size="9" fill="#22d3a0" opacity="0.6" letter-spacing="3" font-family="JetBrains Mono, monospace">LAYER 2 · STORY GENERATION</text>
+
+      <!-- USER INPUT -->
+      <rect x="30" y="10" width="140" height="44" rx="8" fill="#0d1117" stroke="#00aaff" stroke-width="1.5"/>
+      <text x="100" y="28" font-size="11" fill="white" text-anchor="middle" font-weight="700">👤 使用者輸入</text>
+      <text x="100" y="44" font-size="9" fill="#526070" text-anchor="middle">主題 / 概念種子</text>
+
+      <!-- Arrow to Theme Analyzer -->
+      <line x1="170" y1="32" x2="216" y2="32" stroke="#00aaff" stroke-width="1.5" marker-end="url(#arr)" opacity="0.7"/>
+
+      <!-- THEME ANALYZER -->
+      <rect x="220" y="92" width="140" height="58" rx="8" fill="#0d1117" stroke="#00aaff" stroke-width="1.5"/>
+      <text x="290" y="116" font-size="11" fill="#00aaff" text-anchor="middle" font-weight="700">🔬 主題分析器</text>
+      <text x="290" y="132" font-size="9" fill="#526070" text-anchor="middle">Theme Analyzer</text>
+      <text x="290" y="145" font-size="8" fill="#3a5070" text-anchor="middle">維度向量化</text>
+      <!-- line from user input down to Theme Analyzer -->
+      <line x1="100" y1="54" x2="100" y2="118" stroke="#00aaff" stroke-width="1" opacity="0.4" stroke-dasharray="4 3"/>
+      <line x1="100" y1="118" x2="218" y2="121" stroke="#00aaff" stroke-width="1.5" marker-end="url(#arr)" opacity="0.7"/>
+
+      <!-- FRAMEWORK LIBRARY -->
+      <rect x="400" y="92" width="140" height="58" rx="8" fill="#0d1117" stroke="#7c5cfc" stroke-width="1.5"/>
+      <text x="470" y="112" font-size="11" fill="#7c5cfc" text-anchor="middle" font-weight="700">📚 框架知識庫</text>
+      <text x="470" y="128" font-size="9" fill="#526070" text-anchor="middle">Framework Library</text>
+      <text x="470" y="141" font-size="8" fill="#3a5070" text-anchor="middle">STC · HJ · McKee · 三幕</text>
+      <line x1="360" y1="121" x2="398" y2="121" stroke="#7c5cfc" stroke-width="1.5" marker-end="url(#arr-v)" opacity="0.7"/>
+
+      <!-- STRATEGY SYNTHESIZER -->
+      <rect x="580" y="92" width="160" height="58" rx="8" fill="#0d1117" stroke="#7c5cfc" stroke-width="2"/>
+      <text x="660" y="112" font-size="11" fill="#c084fc" text-anchor="middle" font-weight="700">🧠 策略合成器</text>
+      <text x="660" y="128" font-size="9" fill="#526070" text-anchor="middle">Strategy Synthesizer</text>
+      <text x="660" y="141" font-size="8" fill="#3a5070" text-anchor="middle">輸出 Framework DNA</text>
+      <line x1="540" y1="121" x2="578" y2="121" stroke="#7c5cfc" stroke-width="1.5" marker-end="url(#arr-v)" opacity="0.7"/>
+
+      <!-- CONFIRMATION GATEWAY -->
+      <rect x="780" y="92" width="160" height="58" rx="8" fill="#1a1200" stroke="#f5b942" stroke-width="2"/>
+      <text x="860" y="110" font-size="11" fill="#f5b942" text-anchor="middle" font-weight="700">✅ 確認閘道</text>
+      <text x="860" y="126" font-size="9" fill="#7a6030" text-anchor="middle">User Confirmation Gate</text>
+      <text x="860" y="142" font-size="8" fill="#5a4820" text-anchor="middle">唯一的使用者確認點</text>
+      <line x1="740" y1="121" x2="778" y2="121" stroke="#f5b942" stroke-width="1.5" marker-end="url(#arr)" opacity="0.7"/>
+
+      <!-- CONFIRMED DNA → Layer 2 -->
+      <line x1="860" y1="150" x2="860" y2="270" stroke="#f5b942" stroke-width="1" opacity="0.4" stroke-dasharray="4 3"/>
+      <line x1="860" y1="270" x2="492" y2="330" stroke="#22d3a0" stroke-width="1.5" marker-end="url(#arr-g)" opacity="0.7"/>
+
+      <!-- ORCHESTRATOR -->
+      <rect x="400" y="338" width="160" height="50" rx="8" fill="#0d1117" stroke="#22d3a0" stroke-width="2"/>
+      <text x="480" y="358" font-size="11" fill="#22d3a0" text-anchor="middle" font-weight="700">🎬 編制代理人</text>
+      <text x="480" y="375" font-size="9" fill="#526070" text-anchor="middle">Orchestrator</text>
+
+      <!-- Orchestrator fans out to agents -->
+      <line x1="400" y1="363" x2="306" y2="406" stroke="#22d3a0" stroke-width="1" opacity="0.5" stroke-dasharray="3 3"/>
+      <line x1="420" y1="388" x2="356" y2="430" stroke="#22d3a0" stroke-width="1" opacity="0.5" stroke-dasharray="3 3"/>
+      <line x1="480" y1="388" x2="480" y2="430" stroke="#22d3a0" stroke-width="1" opacity="0.5" stroke-dasharray="3 3"/>
+      <line x1="540" y1="388" x2="604" y2="430" stroke="#22d3a0" stroke-width="1" opacity="0.5" stroke-dasharray="3 3"/>
+      <line x1="560" y1="363" x2="654" y2="406" stroke="#22d3a0" stroke-width="1" opacity="0.5" stroke-dasharray="3 3"/>
+
+      <!-- 5 generation agents -->
+      <!-- Character Architect -->
+      <rect x="220" y="430" width="130" height="48" rx="7" fill="#0d1117" stroke="#16a34a" stroke-width="1.2"/>
+      <text x="285" y="450" font-size="10" fill="#4ade80" text-anchor="middle" font-weight="700">角色建築師</text>
+      <text x="285" y="465" font-size="8" fill="#3a6040" text-anchor="middle">Character Architect</text>
+
+      <!-- Scene Simulator -->
+      <rect x="360" y="430" width="120" height="48" rx="7" fill="#0d1117" stroke="#9333ea" stroke-width="1.2"/>
+      <text x="420" y="450" font-size="10" fill="#c084fc" text-anchor="middle" font-weight="700">場景模擬員</text>
+      <text x="420" y="465" font-size="8" fill="#5a3070" text-anchor="middle">Scene Simulator</text>
+
+      <!-- Historian (center) -->
+      <rect x="490" y="430" width="120" height="48" rx="7" fill="#0d1117" stroke="#ca8a04" stroke-width="1.2"/>
+      <text x="550" y="450" font-size="10" fill="#fbbf24" text-anchor="middle" font-weight="700">敘事歷史學家</text>
+      <text x="550" y="465" font-size="8" fill="#6a5010" text-anchor="middle">Historian</text>
+
+      <!-- Energy Monitor -->
+      <rect x="620" y="430" width="130" height="48" rx="7" fill="#0d1117" stroke="#2563eb" stroke-width="1.2"/>
+      <text x="685" y="450" font-size="10" fill="#60a5fa" text-anchor="middle" font-weight="700">電荷監控器</text>
+      <text x="685" y="465" font-size="8" fill="#1e4090" text-anchor="middle">Energy Monitor</text>
+
+      <!-- Dialogue Assassin -->
+      <rect x="760" y="430" width="130" height="48" rx="7" fill="#0d1117" stroke="#ea580c" stroke-width="1.2"/>
+      <text x="825" y="450" font-size="10" fill="#f97316" text-anchor="middle" font-weight="700">對白暗殺者</text>
+      <text x="825" y="465" font-size="8" fill="#7c2d12" text-anchor="middle">Dialogue Assassin</text>
+
+      <!-- All converge to output -->
+      <line x1="285" y1="478" x2="440" y2="536" stroke="#22d3a0" stroke-width="1" opacity="0.4" stroke-dasharray="3 3"/>
+      <line x1="420" y1="478" x2="458" y2="536" stroke="#22d3a0" stroke-width="1" opacity="0.4" stroke-dasharray="3 3"/>
+      <line x1="550" y1="478" x2="490" y2="536" stroke="#22d3a0" stroke-width="1" opacity="0.4" stroke-dasharray="3 3"/>
+      <line x1="685" y1="478" x2="530" y2="536" stroke="#22d3a0" stroke-width="1" opacity="0.4" stroke-dasharray="3 3"/>
+      <line x1="825" y1="478" x2="550" y2="536" stroke="#22d3a0" stroke-width="1" opacity="0.4" stroke-dasharray="3 3"/>
+
+      <!-- OUTPUT -->
+      <rect x="380" y="540" width="220" height="32" rx="8" fill="#0a1a14" stroke="#22d3a0" stroke-width="1.5"/>
+      <text x="490" y="561" font-size="11" fill="#22d3a0" text-anchor="middle" font-weight="700">📄 劇本輸出 + 故事聖經</text>
+
+      <!-- Quality gate label -->
+      <text x="760" y="520" font-size="8" fill="#526070" font-family="JetBrains Mono, monospace">↑ Energy = 0 → Refinement Loop</text>
+    </svg>
+  </div>
+
+  <div class="insight">
+    <div class="insight-header">設計見解</div>
+    <strong>為什麼只有一個使用者確認點？</strong>多個確認點是常見的設計陷阱——每一次打斷都會破壞「敘事動量」（Narrative Momentum）。使用者應該在故事<em>開始之前</em>確認方向，而非在過程中不斷被要求微調。這也是為什麼確認閘道（Confirmation Gate）的設計至關重要：它呈現的必須是足夠有意義的資訊，讓使用者能做出真正有依據的決定，而非流於形式的點擊確認。
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ══ PHASE 1: STRATEGY LAYER ══ -->
+<div class="section" id="phase1">
+  <div class="section-tag">02 · 策略智能層</div>
+  <h2>Phase 1：Theme Intelligence → Framework DNA</h2>
+  <p class="section-intro">策略層是 DRAMATIX 的「編劇顧問大腦」。它在 3 個步驟內完成從原始主題到可執行框架配方的推理，並以「導演簡報」的形式呈現給使用者確認。</p>
+
+  <!-- Step 1: Theme Analysis -->
+  <div class="phase-block">
+    <div class="phase-header">
+      <div class="phase-num" style="background:rgba(0,170,255,0.15);border:1px solid var(--blue);color:var(--blue)">S1</div>
+      <div>
+        <div class="phase-title">主題分析器（Theme Analyzer）</div>
+        <div class="phase-sub">將自然語言主題轉換為多維度向量</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.9">
+        使用者輸入的主題往往是模糊的自然語言（「我想做一個關於背叛的故事」）。分析器的工作是將其拆解為結構化的敘事維度向量，作為框架選擇的依據。
+      </p>
+
+      <div class="code-block">
+<span class="c"># 主題分析器輸出的結構化維度向量（示例）</span>
+<span class="k">ThemeDimension</span> {
+  <span class="n">medium</span>:          <span class="s">"youtube_short_doc"</span>,  <span class="c"># 媒介推斷</span>
+  <span class="n">tone</span>:             <span class="s">"suspense_horror"</span>,    <span class="c"># 情緒基調</span>
+  <span class="n">protagonist_type</span>: <span class="s">"everyman"</span>,           <span class="c"># 主角原型</span>
+  <span class="n">conflict_axis</span>:    <span class="s">"external_mystery"</span>,   <span class="c"># 衝突軸</span>
+  <span class="n">time_scope</span>:       <span class="s">"contemporary"</span>,       <span class="c"># 時間範圍</span>
+  <span class="n">truth_complexity</span>: <span class="v">0.7</span>,                 <span class="c"># 0=單純, 1=高度複雜</span>
+  <span class="n">emotional_depth</span>:  <span class="v">0.6</span>,                 <span class="c"># 心理刻畫需求</span>
+  <span class="n">pace_requirement</span>: <span class="v">0.8</span>,                 <span class="c"># 節奏密度需求</span>
+  <span class="n">myth_resonance</span>:   <span class="v">0.3</span>,                 <span class="c"># 神話原型共鳴度</span>
+  <span class="n">knowledge_transfer</span>: <span class="v">0.2</span>               <span class="c"># 知識傳遞比重</span>
+}
+      </div>
+
+      <div class="card-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+        <div class="card" style="padding:18px">
+          <div class="card-accent" style="background:linear-gradient(90deg,var(--blue),transparent)"></div>
+          <h3 style="font-size:13px">媒介推斷</h3>
+          <p>從敘述風格、目標長度暗示、主題類型自動推斷最可能的發佈媒介（YouTube、Podcast、影集、短片等）</p>
+        </div>
+        <div class="card" style="padding:18px">
+          <div class="card-accent" style="background:linear-gradient(90deg,var(--violet),transparent)"></div>
+          <h3 style="font-size:13px">衝突軸分析</h3>
+          <p>辨識故事的核心張力來源：外部衝突 vs 內部衝突、人 vs 人 vs 社會 vs 自然，決定框架的情緒走向</p>
+        </div>
+        <div class="card" style="padding:18px">
+          <div class="card-accent" style="background:linear-gradient(90deg,var(--cyan),transparent)"></div>
+          <h3 style="font-size:13px">神話共鳴度評分</h3>
+          <p>衡量主題是否具備神話原型的深層結構（英雄、陰影、導師），決定英雄旅程框架的參與比重</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: Framework Matching -->
+  <div class="phase-block">
+    <div class="phase-header">
+      <div class="phase-num" style="background:rgba(124,92,252,0.15);border:1px solid var(--violet);color:var(--violet)">S2</div>
+      <div>
+        <div class="phase-title">策略合成器（Strategy Synthesizer）</div>
+        <div class="phase-sub">基於維度向量輸出 Framework DNA 配方</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.9">
+        策略合成器是整個系統的核心推理引擎。它接收維度向量，透過規則 + LLM 推理的混合方法，為每個框架分配「使用權重」，並說明各框架在這個特定故事中扮演的角色。
+      </p>
+
+      <div style="margin-bottom:24px">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:16px;font-family:'JetBrains Mono',monospace;letter-spacing:1px">三種主題的 Framework DNA 示例：</div>
+        <div class="dna-grid">
+          <div class="dna-card">
+            <div class="dna-title">🔴 都市傳說型主題</div>
+            <div class="dna-bar-row">
+              <div class="dna-fw-name">Save the Cat</div>
+              <div class="dna-bar-bg"><div class="dna-bar-fill" style="width:65%;background:linear-gradient(90deg,#00aaff,#0077cc)"></div></div>
+              <div class="dna-pct">65%</div>
+            </div>
+            <div class="dna-bar-row">
+              <div class="dna-fw-name">McKee Gap</div>
+              <div class="dna-bar-bg"><div class="dna-bar-fill" style="width:30%;background:linear-gradient(90deg,#7c5cfc,#5c3cdc)"></div></div>
+              <div class="dna-pct">30%</div>
+            </div>
+            <div class="dna-bar-row">
+              <div class="dna-fw-name">Hero Journey</div>
+              <div class="dna-bar-bg"><div class="dna-bar-fill" style="width:5%;background:#3a3040"></div></div>
+              <div class="dna-pct">5%</div>
+            </div>
+            <span class="dna-tag">節奏優先 · 懸念驅動</span>
+          </div>
+          <div class="dna-card">
+            <div class="dna-title">🎙 知識 Podcast 型主題</div>
+            <div class="dna-bar-row">
+              <div class="dna-fw-name">Hero Journey</div>
+              <div class="dna-bar-bg"><div class="dna-bar-fill" style="width:50%;background:linear-gradient(90deg,#22d3a0,#10a070)"></div></div>
+              <div class="dna-pct">50%</div>
+            </div>
+            <div class="dna-bar-row">
+              <div class="dna-fw-name">McKee Gap</div>
+              <div class="dna-bar-bg"><div class="dna-bar-fill" style="width:30%;background:linear-gradient(90deg,#7c5cfc,#5c3cdc)"></div></div>
+              <div class="dna-pct">30%</div>
+            </div>
+            <div class="dna-bar-row">
+              <div class="dna-fw-name">三幕結構</div>
+              <div class="dna-bar-bg"><div class="dna-bar-fill" style="width:20%;background:linear-gradient(90deg,#f5b942,#c08020)"></div></div>
+              <div class="dna-pct">20%</div>
+            </div>
+            <span class="dna-tag">聽眾即英雄 · 好奇心迴圈</span>
+          </div>
+          <div class="dna-card">
+            <div class="dna-title">⚔️ 歷史人物型主題</div>
+            <div class="dna-bar-row">
+              <div class="dna-fw-name">Hero Journey</div>
+              <div class="dna-bar-bg"><div class="dna-bar-fill" style="width:60%;background:linear-gradient(90deg,#22d3a0,#10a070)"></div></div>
+              <div class="dna-pct">60%</div>
+            </div>
+            <div class="dna-bar-row">
+              <div class="dna-fw-name">McKee Gap</div>
+              <div class="dna-bar-bg"><div class="dna-bar-fill" style="width:25%;background:linear-gradient(90deg,#7c5cfc,#5c3cdc)"></div></div>
+              <div class="dna-pct">25%</div>
+            </div>
+            <div class="dna-bar-row">
+              <div class="dna-fw-name">三幕結構</div>
+              <div class="dna-bar-bg"><div class="dna-bar-fill" style="width:15%;background:linear-gradient(90deg,#f5b942,#c08020)"></div></div>
+              <div class="dna-pct">15%</div>
+            </div>
+            <span class="dna-tag">角色蛻變優先 · 電荷追蹤</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3: Confirmation Gate -->
+  <div class="phase-block">
+    <div class="phase-header">
+      <div class="phase-num" style="background:rgba(245,185,66,0.12);border:1px solid var(--amber);color:var(--amber)">S3</div>
+      <div>
+        <div class="phase-title">確認閘道（Confirmation Gate）—— 唯一的使用者觸點</div>
+        <div class="phase-sub">以「導演簡報」呈現策略，使用者進行輕量確認或微調</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.9">
+        確認閘道的設計哲學：<strong style="color:white">讓使用者感覺自己是導演，而非系統工程師</strong>。呈現的資訊必須是敘事效果的描述，不是框架名稱的清單。
+      </p>
+
+      <div class="code-block">
+<span class="c">─────────────────────────────────────────────</span>
+<span class="n">DRAMATIX</span> <span class="k">策略簡報</span> <span class="c">// 主題：「特斯拉 vs 愛迪生」</span>
+<span class="c">─────────────────────────────────────────────</span>
+
+<span class="k">媒介推斷：</span>  <span class="s">YouTube 歷史紀錄片（8-15 分鐘）</span>
+<span class="k">故事核心：</span>  <span class="s">「一個天才的信念如何在背叛中淬煉成更強大的形式」</span>
+<span class="k">情感弧線：</span>  <span class="s">理想主義 → 破碎 → 新生 → 孤獨的勝利</span>
+
+<span class="k">關鍵設計決策：</span>
+  ✦ 中點（50%）：愛迪生的「美國式幽默」承諾欺騙
+     <span class="c">→ 電荷從 +++ 翻轉為 ---，最大鴻溝</span>
+  ✦ 英雄的缺陷：相信聰明足以換得公平
+     <span class="c">→ 整個旅程是這個信念的破碎與改寫</span>
+  ✦ 結局電荷：勝而憂（非純粹勝利）
+     <span class="c">→ 避免英雄主義的廉價收尾</span>
+
+<span class="k">預計輸出節拍數：</span>  <span class="v">12</span>
+<span class="k">估算字數：</span>        <span class="v">3,200–4,500 字</span>
+
+<span class="c">──────────────────────────────────────</span>
+<span class="s">[ 確認並開始生成 ]</span>  <span class="s">[ 調整策略方向 ]</span>  <span class="s">[ 重新輸入主題 ]</span>
+      </div>
+
+      <div class="warn">
+        <strong>設計陷阱警告：</strong>確認介面如果暴露太多技術細節（「Save the Cat 65% + McKee Gap 30%」），會讓非編劇使用者感到困惑並產生不必要的微調衝動。應當只展示<strong>敘事效果層</strong>的描述，讓使用者確認的是「這是我想要的故事走向嗎」，而非「這個框架比例是否最優」。
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ══ PHASE 2: GENERATION LAYER ══ -->
+<div class="section" id="phase2">
+  <div class="section-tag">03 · 故事生成層</div>
+  <h2>Phase 2：Agent Crew 的協作生產流程</h2>
+  <p class="section-intro">確認閘道通過後，系統將 Framework DNA 注入 Agent Crew，開始協作生成。關鍵設計是：每個 Agent 只看到它需要看到的信息，避免「指令飽和」導致的品質下降。</p>
+
+  <div class="phase-block">
+    <div class="phase-header">
+      <div class="phase-num" style="background:rgba(34,211,160,0.1);border:1px solid var(--green);color:var(--green)">G1</div>
+      <div>
+        <div class="phase-title">編制代理人（Orchestrator）—— 動態場景任務分配</div>
+        <div class="phase-sub">根據 Framework DNA 拆解大綱並動態調度其他 Agents</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.9">
+        Orchestrator 接收 Framework DNA 後，首先生成「故事骨架」（Scene Map），將整個結構拆解為獨立場景任務，然後根據每個場景的性質決定需要調用哪些 Sub-Agents。
+      </p>
+      <div class="compare">
+        <div class="compare-col">
+          <h4 style="color:var(--rose)">❌ 傳統單一 Agent 模式</h4>
+          <div class="compare-item">一個 Prompt 塞入全部指令，導致「指令飽和」</div>
+          <div class="compare-item">無法在長篇生成中維持角色一致性</div>
+          <div class="compare-item">Scene Energy 檢查與生成混合，互相干擾</div>
+          <div class="compare-item">框架邏輯與對白生成搶占同一上下文窗口</div>
+        </div>
+        <div class="compare-col">
+          <h4 style="color:var(--green)">✓ DRAMATIX 多 Agent 模式</h4>
+          <div class="compare-item">Orchestrator 管理宏觀結構，Sub-Agents 聚焦微觀任務</div>
+          <div class="compare-item">角色建築師維護獨立的角色記憶空間（Story Bible）</div>
+          <div class="compare-item">Energy Monitor 作為獨立異步進程運行</div>
+          <div class="compare-item">對白暗殺者作為最後一道 Pass，不干擾生成流程</div>
+        </div>
+      </div>
+
+      <div class="insight">
+        <div class="insight-header">設計見解 · 關於 Orchestrator 的核心挑戰</div>
+        <strong>Orchestrator 最困難的任務不是分配工作，而是決定「何時讓故事自由發展」</strong>。框架是藍圖，不是鐵籠——當 Scene Simulator 在即興演練中產生了一個比框架更好的對話走向，Orchestrator 必須有判斷力去「接受偏差」並更新場景地圖，而非強制拉回框架節點。這需要在 Orchestrator 的指令中明確建立「框架彈性容差」的概念。
+      </div>
+    </div>
+  </div>
+
+  <!-- Generation Pipeline Flow -->
+  <div class="flow-wrap" style="padding:24px 28px">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;margin-bottom:20px">生成管道流程（單一場景）</div>
+    <div class="journey-steps" style="flex-wrap:nowrap;overflow-x:auto;gap:2px">
+      <div class="step" style="border-color:var(--green);min-width:160px">
+        <div class="step-num">STEP 01</div>
+        <div class="step-title">場景任務下達</div>
+        <div class="step-desc">Orchestrator 發出場景指令，包含初始電荷、期待路徑、障礙類型</div>
+        <div class="step-arrow">›</div>
+      </div>
+      <div class="step" style="border-color:#9333ea;min-width:160px">
+        <div class="step-num">STEP 02</div>
+        <div class="step-title">角色記憶載入</div>
+        <div class="step-desc">Character Architect 注入角色語音範例與心理檔案至本場景上下文</div>
+        <div class="step-arrow">›</div>
+      </div>
+      <div class="step" style="border-color:#c084fc;min-width:160px">
+        <div class="step-num">STEP 03</div>
+        <div class="step-title">即興演練</div>
+        <div class="step-desc">Scene Simulator 以角色身份即興對話，捕捉自然語言衝突</div>
+        <div class="step-arrow">›</div>
+      </div>
+      <div class="step" style="border-color:var(--blue);min-width:160px">
+        <div class="step-num">STEP 04</div>
+        <div class="step-title">電荷審核</div>
+        <div class="step-desc">Energy Monitor 計算 |V_start − V_end|，若 = 0 觸發重寫迴圈</div>
+        <div class="step-arrow">›</div>
+      </div>
+      <div class="step" style="border-color:#ea580c;min-width:160px">
+        <div class="step-num">STEP 05</div>
+        <div class="step-title">對白手術</div>
+        <div class="step-desc">Dialogue Assassin 移除直白表達，注入亞文本，破碎化長句</div>
+        <div class="step-arrow">›</div>
+      </div>
+      <div class="step" style="border-color:#ca8a04;min-width:160px">
+        <div class="step-num">STEP 06</div>
+        <div class="step-title">歷史歸檔</div>
+        <div class="step-desc">Historian 記錄本場景的價值變化、角色狀態、情節事件至 Story Bible</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ══ AGENT SPECS ══ -->
+<div class="section" id="agents">
+  <div class="section-tag">04 · Agent 規格書</div>
+  <h2>九個 Agent 的職責邊界與設計規格</h2>
+  <p class="section-intro">明確的職責邊界是多 Agent 系統的核心設計原則。每個 Agent 只做一件事，但把它做到極致。</p>
+
+  <div class="agent-grid">
+
+    <!-- Theme Analyzer -->
+    <div class="agent-card">
+      <div class="agent-head">
+        <div class="agent-icon" style="background:rgba(0,170,255,0.1);border:1px solid rgba(0,170,255,0.3)">🔬</div>
+        <div>
+          <div class="agent-name">主題分析器</div>
+          <div class="agent-en">THEME ANALYZER</div>
+        </div>
+      </div>
+      <div class="agent-body">
+        <div class="agent-row"><div class="agent-row-label">層次</div><div class="agent-row-val"><span class="tag tag-blue">策略層</span></div></div>
+        <div class="agent-row"><div class="agent-row-label">輸入</div><div class="agent-row-val">使用者的自然語言主題描述</div></div>
+        <div class="agent-row"><div class="agent-row-label">輸出</div><div class="agent-row-val">結構化 ThemeDimension 向量（JSON）</div></div>
+        <div class="agent-row"><div class="agent-row-label">核心任務</div><div class="agent-row-val">媒介推斷、衝突軸分析、神話共鳴度評分、情感深度評估</div></div>
+        <div class="agent-row"><div class="agent-row-label">關鍵約束</div><div class="agent-row-val">不得生成任何故事內容，只做維度分析</div></div>
+      </div>
+    </div>
+
+    <!-- Strategy Synthesizer -->
+    <div class="agent-card">
+      <div class="agent-head">
+        <div class="agent-icon" style="background:rgba(124,92,252,0.1);border:1px solid rgba(124,92,252,0.3)">🧠</div>
+        <div>
+          <div class="agent-name">策略合成器</div>
+          <div class="agent-en">STRATEGY SYNTHESIZER</div>
+        </div>
+      </div>
+      <div class="agent-body">
+        <div class="agent-row"><div class="agent-row-label">層次</div><div class="agent-row-val"><span class="tag tag-violet">策略層</span></div></div>
+        <div class="agent-row"><div class="agent-row-label">輸入</div><div class="agent-row-val">ThemeDimension 向量 + 框架知識庫</div></div>
+        <div class="agent-row"><div class="agent-row-label">輸出</div><div class="agent-row-val">Framework DNA（框架權重配方）+ 導演簡報草稿</div></div>
+        <div class="agent-row"><div class="agent-row-label">核心任務</div><div class="agent-row-val">框架權重分配、情感弧線規劃、關鍵轉折點預設</div></div>
+        <div class="agent-row"><div class="agent-row-label">關鍵約束</div><div class="agent-row-val">必須為每個框架選擇提供可讀的敘事效果說明</div></div>
+      </div>
+    </div>
+
+    <!-- Orchestrator -->
+    <div class="agent-card">
+      <div class="agent-head">
+        <div class="agent-icon" style="background:rgba(34,211,160,0.1);border:1px solid rgba(34,211,160,0.3)">🎬</div>
+        <div>
+          <div class="agent-name">編制代理人</div>
+          <div class="agent-en">ORCHESTRATOR</div>
+        </div>
+      </div>
+      <div class="agent-body">
+        <div class="agent-row"><div class="agent-row-label">層次</div><div class="agent-row-val"><span class="tag tag-green">生成層</span></div></div>
+        <div class="agent-row"><div class="agent-row-label">輸入</div><div class="agent-row-val">確認後的 Framework DNA + 使用者調整</div></div>
+        <div class="agent-row"><div class="agent-row-label">輸出</div><div class="agent-row-val">Scene Map（場景任務序列）+ Agent 調度指令</div></div>
+        <div class="agent-row"><div class="agent-row-label">核心任務</div><div class="agent-row-val">大綱拆解、場景任務分配、框架彈性容差判斷</div></div>
+        <div class="agent-row"><div class="agent-row-label">關鍵約束</div><div class="agent-row-val">必須允許「計劃外偏差」的接受機制，避免框架過度剛性</div></div>
+      </div>
+    </div>
+
+    <!-- Character Architect -->
+    <div class="agent-card">
+      <div class="agent-head">
+        <div class="agent-icon" style="background:rgba(22,163,74,0.1);border:1px solid rgba(22,163,74,0.3)">🏛️</div>
+        <div>
+          <div class="agent-name">角色建築師</div>
+          <div class="agent-en">CHARACTER ARCHITECT</div>
+        </div>
+      </div>
+      <div class="agent-body">
+        <div class="agent-row"><div class="agent-row-label">層次</div><div class="agent-row-val"><span class="tag tag-green">生成層</span></div></div>
+        <div class="agent-row"><div class="agent-row-label">管理內容</div><div class="agent-row-val">角色說話語氣、語音樣本、隱藏動機、心理檔案、缺陷定義</div></div>
+        <div class="agent-row"><div class="agent-row-label">核心任務</div><div class="agent-row-val">為每個場景生成前注入相關角色記憶，保證跨場景一致性</div></div>
+        <div class="agent-row"><div class="agent-row-label">記憶機制</div><div class="agent-row-val">向量數據庫（角色語音範例 + 重要情節標記）</div></div>
+        <div class="agent-row"><div class="agent-row-label">關鍵約束</div><div class="agent-row-val">每個角色必須有明確的「不能直接說出口的事」清單</div></div>
+      </div>
+    </div>
+
+    <!-- Scene Simulator -->
+    <div class="agent-card">
+      <div class="agent-head">
+        <div class="agent-icon" style="background:rgba(147,51,234,0.1);border:1px solid rgba(147,51,234,0.3)">🎭</div>
+        <div>
+          <div class="agent-name">場景模擬員</div>
+          <div class="agent-en">SCENE SIMULATOR</div>
+        </div>
+      </div>
+      <div class="agent-body">
+        <div class="agent-row"><div class="agent-row-label">層次</div><div class="agent-row-val"><span class="tag tag-violet">生成層</span></div></div>
+        <div class="agent-row"><div class="agent-row-label">工作模式</div><div class="agent-row-val">以角色身份進行即興對話演練，再轉化為劇本格式</div></div>
+        <div class="agent-row"><div class="agent-row-label">核心任務</div><div class="agent-row-val">捕捉自然語言衝突、發現意料之外的對話走向</div></div>
+        <div class="agent-row"><div class="agent-row-label">設計考量</div><div class="agent-row-val">即興演練的輸出不直接用於最終劇本，而是作為「原材料」</div></div>
+        <div class="agent-row"><div class="agent-row-label">關鍵約束</div><div class="agent-row-val">不得受到框架節點的直接約束，確保自然感</div></div>
+      </div>
+    </div>
+
+    <!-- Energy Monitor -->
+    <div class="agent-card">
+      <div class="agent-head">
+        <div class="agent-icon" style="background:rgba(37,99,235,0.1);border:1px solid rgba(37,99,235,0.3)">⚡</div>
+        <div>
+          <div class="agent-name">電荷監控器</div>
+          <div class="agent-en">ENERGY MONITOR</div>
+        </div>
+      </div>
+      <div class="agent-body">
+        <div class="agent-row"><div class="agent-row-label">層次</div><div class="agent-row-val"><span class="tag tag-blue">生成層</span></div></div>
+        <div class="agent-row"><div class="agent-row-label">運行方式</div><div class="agent-row-val">異步進程，不阻斷生成流程</div></div>
+        <div class="agent-row"><div class="agent-row-label">監控指標</div><div class="agent-row-val">Scene Energy | V_start − V_end |，張力曲線，節奏密度</div></div>
+        <div class="agent-row"><div class="agent-row-label">觸發條件</div><div class="agent-row-val">Energy = 0 → 通知 Orchestrator 觸發場景重寫</div></div>
+        <div class="agent-row"><div class="agent-row-label">關鍵約束</div><div class="agent-row-val">不能直接修改場景內容，只發出信號讓 Orchestrator 決策</div></div>
+      </div>
+    </div>
+
+    <!-- Dialogue Assassin -->
+    <div class="agent-card">
+      <div class="agent-head">
+        <div class="agent-icon" style="background:rgba(234,88,12,0.1);border:1px solid rgba(234,88,12,0.3)">🗡️</div>
+        <div>
+          <div class="agent-name">對白暗殺者</div>
+          <div class="agent-en">DIALOGUE ASSASSIN</div>
+        </div>
+      </div>
+      <div class="agent-body">
+        <div class="agent-row"><div class="agent-row-label">層次</div><div class="agent-row-val"><span class="tag tag-amber">生成層 · 後處理</span></div></div>
+        <div class="agent-row"><div class="agent-row-label">執行時機</div><div class="agent-row-val">所有場景生成完成後的最後一道 Pass</div></div>
+        <div class="agent-row"><div class="agent-row-label">核心任務</div><div class="agent-row-val">移除直白情緒陳述、注入行為矛盾、破碎化長句、加入權力動態</div></div>
+        <div class="agent-row"><div class="agent-row-label">設計考量</div><div class="agent-row-val">作為最後 Pass 而非內嵌在生成流程中，保持生成的自由度</div></div>
+        <div class="agent-row"><div class="agent-row-label">關鍵約束</div><div class="agent-row-val">每次修改必須記錄「修改理由」供 Historian 存檔</div></div>
+      </div>
+    </div>
+
+    <!-- Historian -->
+    <div class="agent-card">
+      <div class="agent-head">
+        <div class="agent-icon" style="background:rgba(202,138,4,0.1);border:1px solid rgba(202,138,4,0.3)">📚</div>
+        <div>
+          <div class="agent-name">敘事歷史學家</div>
+          <div class="agent-en">NARRATOR HISTORIAN</div>
+        </div>
+      </div>
+      <div class="agent-body">
+        <div class="agent-row"><div class="agent-row-label">層次</div><div class="agent-row-val"><span class="tag tag-amber">生成層 · 持久化</span></div></div>
+        <div class="agent-row"><div class="agent-row-label">核心任務</div><div class="agent-row-val">維護完整的 Story Bible，追蹤情節點、角色狀態、電荷歷史</div></div>
+        <div class="agent-row"><div class="agent-row-label">技術實現</div><div class="agent-row-val">向量數據庫 + 結構化 JSON 狀態，支持語義檢索</div></div>
+        <div class="agent-row"><div class="agent-row-label">設計重要性</div><div class="agent-row-val">這是系統中最被低估的 Agent——它是跨場景一致性的唯一保障</div></div>
+        <div class="agent-row"><div class="agent-row-label">關鍵約束</div><div class="agent-row-val">被動接收而非主動生成，永遠不創造新情節</div></div>
+      </div>
+    </div>
+
+    <!-- Diversity Agent (new!) -->
+    <div class="agent-card" style="border-color:#f04060">
+      <div class="agent-head" style="border-bottom-color:#1e1020">
+        <div class="agent-icon" style="background:rgba(240,64,96,0.1);border:1px solid rgba(240,64,96,0.3)">🎲</div>
+        <div>
+          <div class="agent-name">多樣性守門員 <span style="font-size:10px;color:var(--rose);font-family:'JetBrains Mono',monospace">NEW</span></div>
+          <div class="agent-en">DIVERSITY GUARDIAN</div>
+        </div>
+      </div>
+      <div class="agent-body">
+        <div class="agent-row"><div class="agent-row-label">層次</div><div class="agent-row-val"><span class="tag tag-rose">生成層 · 品質管控</span></div></div>
+        <div class="agent-row"><div class="agent-row-label">核心任務</div><div class="agent-row-val">偵測重複橋段、AI 慣用詞彙、風格單一化問題</div></div>
+        <div class="agent-row"><div class="agent-row-label">介入機制</div><div class="agent-row-val">觸發「風格原型切換」（海明威式 / 奧斯丁式 / 卡夫卡式）</div></div>
+        <div class="agent-row"><div class="agent-row-label">為何新增</div><div class="agent-row-val">長篇生成的最大隱患是「風格均質化」——每個場景都有同樣的敘事節奏和句子結構</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ══ USER JOURNEY ══ -->
+<div class="section" id="ux">
+  <div class="section-tag">05 · 使用者體驗流程</div>
+  <h2>從輸入到輸出：使用者只做三件事</h2>
+  <p class="section-intro">複雜的多 Agent 協作應該對使用者完全透明。使用者體驗的目標是：讓他感覺自己在和一個「非常聰明的編劇助理」對話，而非在操作一套複雜的系統。</p>
+
+  <div class="journey-steps">
+    <div class="step" style="border-color:var(--blue)">
+      <div class="step-num">01</div>
+      <div class="step-title">輸入主題</div>
+      <div class="step-desc">任意形式的自然語言描述。「一個關於背叛的故事」「特斯拉 vs 愛迪生」「深夜的 LINE 訊息」均可接受。</div>
+      <div class="step-arrow">›</div>
+    </div>
+    <div class="step" style="border-color:var(--violet)">
+      <div class="step-num">02</div>
+      <div class="step-title">等待策略分析</div>
+      <div class="step-desc">系統自動完成主題分析 + 框架合成，約 15–30 秒。使用者看到進度提示，但不看到技術細節。</div>
+      <div class="step-arrow">›</div>
+    </div>
+    <div class="step" style="border-color:var(--amber)">
+      <div class="step-num">03 ★</div>
+      <div class="step-title">確認導演簡報</div>
+      <div class="step-desc">閱讀策略摘要（故事核心、情感弧線、關鍵轉折點描述），選擇「確認」或「微調方向」。</div>
+      <div class="step-arrow">›</div>
+    </div>
+    <div class="step" style="border-color:var(--green)">
+      <div class="step-num">04</div>
+      <div class="step-title">等待故事生成</div>
+      <div class="step-desc">Agent Crew 開始協作生成。可選擇「串流顯示」（邊生成邊閱讀）或「完成後顯示」。</div>
+      <div class="step-arrow">›</div>
+    </div>
+    <div class="step" style="border-color:var(--cyan)">
+      <div class="step-num">05</div>
+      <div class="step-title">接收輸出</div>
+      <div class="step-desc">劇本全文 + 故事聖經（角色檔案、電荷歷史、框架決策紀錄），可進一步要求「修改某個場景」。</div>
+    </div>
+  </div>
+
+  <div class="insight">
+    <div class="insight-header">設計見解 · 「微調方向」的邊界</div>
+    使用者在確認閘道選擇「微調方向」時，應當只能調整<strong>敘事效果層</strong>的參數——例如「我希望結局更悲劇一些」或「我希望主角更有缺陷感」——而非框架技術層的參數。系統接收這些自然語言調整後，由策略合成器重新計算 Framework DNA，再次呈現導演簡報。<strong>這個迴圈最多允許 2 次</strong>，避免使用者陷入無限調整的決策疲勞。
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ══ TECH STACK ══ -->
+<div class="section" id="stack">
+  <div class="section-tag">06 · 技術選型建議</div>
+  <h2>實作層的技術棧推薦</h2>
+  <p class="section-intro">以下建議基於「快速驗證優先、架構可擴展」的原則。MVP 階段選用輕量方案，在核心概念驗證後再升級到生產級架構。</p>
+
+  <div class="stack-grid">
+    <div class="stack-card">
+      <div class="stack-layer">Agent 協作框架</div>
+      <div class="stack-items">
+        <div class="stack-item">🦜 <span>LangGraph</span><div class="stack-note">推薦 MVP</div></div>
+        <div class="stack-item">🔗 <span>CrewAI</span><div class="stack-note">角色定義清晰</div></div>
+        <div class="stack-item">🤖 <span>AutoGen (Microsoft)</span><div class="stack-note">多 Agent 對話</div></div>
+      </div>
+    </div>
+    <div class="stack-card">
+      <div class="stack-layer">LLM 推理引擎</div>
+      <div class="stack-items">
+        <div class="stack-item">✦ <span>Claude claude-sonnet-4-6</span><div class="stack-note">策略層 + 生成層</div></div>
+        <div class="stack-item">⚡ <span>Claude claude-haiku-4-5</span><div class="stack-note">電荷監控 / 分析</div></div>
+        <div class="stack-item">🔀 <span>混合路由</span><div class="stack-note">依任務複雜度選模型</div></div>
+      </div>
+    </div>
+    <div class="stack-card">
+      <div class="stack-layer">記憶 / Story Bible</div>
+      <div class="stack-items">
+        <div class="stack-item">🔍 <span>Qdrant / Chroma</span><div class="stack-note">角色記憶向量庫</div></div>
+        <div class="stack-item">📄 <span>Redis / JSON Store</span><div class="stack-note">場景狀態即時緩存</div></div>
+        <div class="stack-item">🗃️ <span>PostgreSQL</span><div class="stack-note">長期故事歷史存檔</div></div>
+      </div>
+    </div>
+    <div class="stack-card">
+      <div class="stack-layer">框架知識庫</div>
+      <div class="stack-items">
+        <div class="stack-item">📋 <span>結構化 JSON Schema</span><div class="stack-note">框架規則編碼</div></div>
+        <div class="stack-item">🧬 <span>Framework DNA 模板</span><div class="stack-note">可配置權重配方</div></div>
+        <div class="stack-item">📊 <span>Beat 百分比查找表</span><div class="stack-note">STC 節拍精確控制</div></div>
+      </div>
+    </div>
+    <div class="stack-card">
+      <div class="stack-layer">API 與串流</div>
+      <div class="stack-items">
+        <div class="stack-item">⚙️ <span>FastAPI</span><div class="stack-note">後端 API 服務</div></div>
+        <div class="stack-item">📡 <span>SSE / WebSocket</span><div class="stack-note">串流輸出支援</div></div>
+        <div class="stack-item">🔄 <span>Celery + Redis</span><div class="stack-note">異步 Agent 任務</div></div>
+      </div>
+    </div>
+    <div class="stack-card">
+      <div class="stack-layer">前端介面（選配）</div>
+      <div class="stack-items">
+        <div class="stack-item">⚛️ <span>Next.js / React</span><div class="stack-note">導演簡報 UI</div></div>
+        <div class="stack-item">📝 <span>Monaco Editor</span><div class="stack-note">劇本閱讀 / 編輯</div></div>
+        <div class="stack-item">🖥️ <span>CLI 模式</span><div class="stack-note">開發者快速測試</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="warn">
+    <strong>關於 LangGraph vs CrewAI 的選擇建議：</strong>如果你更看重「流程控制的可視化與可調試性」，選 LangGraph（狀態機模型，對 Orchestrator 的迴圈邏輯友好）；如果你更看重「快速定義 Agent 角色並啟動」，選 CrewAI（更接近本系統中 Agent 的「職責描述」思維）。<strong>不建議在 MVP 階段同時使用兩套框架。</strong>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ══ RISKS ══ -->
+<div class="section" id="risks">
+  <div class="section-tag">07 · 風險評估</div>
+  <h2>已知設計風險與緩解策略</h2>
+
+  <table class="risk-table">
+    <thead>
+      <tr>
+        <th style="width:200px">風險項目</th>
+        <th style="width:70px">等級</th>
+        <th>問題描述</th>
+        <th>緩解策略</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>框架剛性</strong></td>
+        <td><span class="risk-level rl-high">高</span></td>
+        <td>Agent 過度服從框架節點，產出「公式感」強的劇本，反而強化 AI 味</td>
+        <td>在 Orchestrator 中建立「彈性容差」機制；Framework DNA 的節拍位置有 ±10% 的浮動空間；Scene Simulator 在即興演練時完全不知道框架節點</td>
+      </tr>
+      <tr>
+        <td><strong>上下文窗口耗盡</strong></td>
+        <td><span class="risk-level rl-high">高</span></td>
+        <td>長篇劇本生成時，Historian 記錄的 Story Bible 過大，超出 LLM 上下文限制</td>
+        <td>向量數據庫 + 語義檢索（只提取當前場景相關的記憶片段）；Story Bible 採用「壓縮摘要 + 詳細索引」雙層結構</td>
+      </tr>
+      <tr>
+        <td><strong>策略誤判</strong></td>
+        <td><span class="risk-level rl-mid">中</span></td>
+        <td>主題分析器對模糊主題的維度向量化產生偏差，導致框架選擇失準</td>
+        <td>確認閘道作為糾錯機會；允許「調整方向」的 2 次迴圈；記錄誤判案例用於持續改進分析器</td>
+      </tr>
+      <tr>
+        <td><strong>對白暗殺者過度干預</strong></td>
+        <td><span class="risk-level rl-mid">中</span></td>
+        <td>Dialogue Assassin 修改力度過大，破壞了生成層的原有情感節奏</td>
+        <td>設定「修改強度」參數（輕度 / 中度 / 重度）；每次修改記錄 diff，支持 Orchestrator 回退</td>
+      </tr>
+      <tr>
+        <td><strong>角色性格漂移</strong></td>
+        <td><span class="risk-level rl-mid">中</span></td>
+        <td>跨多個場景後，角色的說話方式和動機開始偏離初始設定</td>
+        <td>Character Architect 在每 3 個場景後執行「角色保真度校驗」；Diversity Guardian 獨立追蹤風格一致性</td>
+      </tr>
+      <tr>
+        <td><strong>確認閘道成擺設</strong></td>
+        <td><span class="risk-level rl-low">低</span></td>
+        <td>使用者習慣性點擊確認而不閱讀策略簡報，失去了人機協作的意義</td>
+        <td>UI 設計要求使用者滾動查看完整簡報；可選「閱讀一個場景預覽」功能，讓使用者在確認前先「感受」策略效果</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr class="divider">
+
+<!-- ══ ROADMAP ══ -->
+<div class="section" id="roadmap">
+  <div class="section-tag">08 · 實施路徑</div>
+  <h2>四階段 MVP 到生產架構的演進路徑</h2>
+
+  <div class="roadmap">
+    <div class="milestone">
+      <div class="ms-label">
+        <div class="ms-phase-dot" style="background:var(--blue)"></div>
+        <span>Phase 0</span>
+        <span style="font-size:9px">Week 1–2</span>
+      </div>
+      <div class="ms-content">
+        <div class="ms-title">概念驗證：單一框架 + 單一主題</div>
+        <p style="font-size:12px;color:var(--muted);line-height:1.7">先不做策略層，直接測試「給定 Framework DNA → Agent Crew 能否生成有品質的劇本」。用一個固定主題（如特斯拉 vs 愛迪生）和固定 DNA（60% HJ + 25% McKee）驗證生成管道的基礎品質。</p>
+        <div class="ms-items">
+          <div class="ms-item">手動設定 Framework DNA</div>
+          <div class="ms-item">Orchestrator + 2 個 Sub-Agents</div>
+          <div class="ms-item">Scene Energy 計算邏輯</div>
+          <div class="ms-item">CLI 介面輸出</div>
+        </div>
+      </div>
+    </div>
+    <div class="milestone">
+      <div class="ms-label">
+        <div class="ms-phase-dot" style="background:var(--violet)"></div>
+        <span>Phase 1</span>
+        <span style="font-size:9px">Week 3–5</span>
+      </div>
+      <div class="ms-content">
+        <div class="ms-title">策略層 MVP：主題分析 + 框架合成</div>
+        <p style="font-size:12px;color:var(--muted);line-height:1.7">加入主題分析器和策略合成器，測試從自然語言主題到 Framework DNA 的推理品質。建立確認閘道的基本文字介面，驗證「導演簡報」的可讀性與準確性。</p>
+        <div class="ms-items">
+          <div class="ms-item">主題分析器 (JSON 輸出)</div>
+          <div class="ms-item">Framework DNA 合成邏輯</div>
+          <div class="ms-item">確認閘道 CLI 版本</div>
+          <div class="ms-item">5 種框架配方模板</div>
+        </div>
+      </div>
+    </div>
+    <div class="milestone">
+      <div class="ms-label">
+        <div class="ms-phase-dot" style="background:var(--green)"></div>
+        <span>Phase 2</span>
+        <span style="font-size:9px">Week 6–10</span>
+      </div>
+      <div class="ms-content">
+        <div class="ms-title">完整 Agent Crew + Story Bible</div>
+        <p style="font-size:12px;color:var(--muted);line-height:1.7">部署所有 9 個 Agent，建立 Story Bible 的向量數據庫，實現跨場景記憶。加入 Dialogue Assassin 的後處理流程，並測試長篇（4,000+ 字）生成的穩定性。</p>
+        <div class="ms-items">
+          <div class="ms-item">完整 9 Agent 部署</div>
+          <div class="ms-item">Qdrant Story Bible</div>
+          <div class="ms-item">Dialogue Assassin 後處理</div>
+          <div class="ms-item">Refinement Loop 機制</div>
+          <div class="ms-item">串流輸出</div>
+        </div>
+      </div>
+    </div>
+    <div class="milestone">
+      <div class="ms-label">
+        <div class="ms-phase-dot" style="background:var(--amber)"></div>
+        <span>Phase 3</span>
+        <span style="font-size:9px">Week 11+</span>
+      </div>
+      <div class="ms-content">
+        <div class="ms-title">使用者介面 + 迭代優化</div>
+        <p style="font-size:12px;color:var(--muted);line-height:1.7">建立完整的 Web 介面，包含互動式導演簡報、場景預覽功能、劇本閱讀/編輯器。收集使用者反饋，持續優化策略合成器的框架匹配準確度。</p>
+        <div class="ms-items">
+          <div class="ms-item">Next.js 前端</div>
+          <div class="ms-item">導演簡報 UI</div>
+          <div class="ms-item">劇本閱讀器</div>
+          <div class="ms-item">A/B 測試框架配方</div>
+          <div class="ms-item">使用者反饋收集</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ══ INSIGHTS ══ -->
+<div class="section" id="insights">
+  <div class="section-tag">09 · 設計見解與建議</div>
+  <h2>我認為最值得關注的五個設計決策</h2>
+
+  <div style="display:flex;flex-direction:column;gap:20px;margin:28px 0">
+
+    <div class="insight">
+      <div class="insight-header">見解 01 · Dialogue Assassin 應該是「最後一道門」而非「內建流程」</div>
+      大多數系統設計會傾向將對白品質控制嵌入生成流程的每一步。我認為這是錯的——它會讓生成代理人在創作時過度自我審查，反而產生更平淡的初稿。正確的設計是：<strong>讓 Scene Simulator 先「盡情發揮」，然後讓 Dialogue Assassin 在後處理階段進行手術</strong>。「創作自由」和「品質控制」應該分離在不同的時間節點，而非同時發生在同一個 Agent 上。
+    </div>
+
+    <div class="insight">
+      <div class="insight-header">見解 02 · 敘事歷史學家（Historian）是整個系統最被低估的 Agent</div>
+      在多數多 Agent 系統的討論中，Historian 類型的 Agent 往往被視為「記帳員」而非關鍵角色。但在敘事生成系統中，<strong>跨場景一致性的維護難度遠超過單場景的生成品質</strong>。一個角色在第一場景說「我永遠不會原諒你」，卻在第七場景輕描淡寫地和解——這種邏輯漏洞是讓讀者出戲的最快路徑。Historian 應當有自己的向量數據庫和主動的一致性校驗機制，而非只是被動地紀錄。
+    </div>
+
+    <div class="insight">
+      <div class="insight-header">見解 03 · Framework DNA 應該允許「框架空缺」</div>
+      有時候最好的策略是在某個特定的故事段落<em>不使用任何框架</em>——讓場景純粹由角色的內在邏輯驅動，而非被節拍百分比約束。建議在 DNA 配方中加入一個 <strong>"free_zones"</strong> 欄位，標記哪些場景允許 Orchestrator 放棄框架干預。這類似於爵士樂的「即興橋段」概念——結構存在，但在特定節點完全交給演奏者。
+    </div>
+
+    <div class="insight">
+      <div class="insight-header">見解 04 · 使用者確認不應該是「批准」，而應該是「方向確認」</div>
+      確認閘道的心理設計很重要：如果使用者感覺自己在「批准一個技術方案」，他們會焦慮並傾向過度干預；如果他們感覺在「告訴導演自己想要什麼感覺的電影」，他們的輸入會更高品質且更具創意。確認閘道的文案措辭、視覺呈現方式，以及「微調」選項的顆粒度，都應服務於這個心理設計目標。
+    </div>
+
+    <div class="warn">
+      <strong>⚠ 最大的潛在誤區：把「更多 Agent」等同於「更好的品質」。</strong>
+      系統設計的誘惑是加入越來越多的專業 Agent（風格 Agent、格式 Agent、事實核查 Agent...）。但每新增一個 Agent 都會增加協調成本、延長生成時間、並引入新的一致性挑戰。建議在每個 Phase 完成後問自己：「這個新 Agent 解決的問題，是否真的無法透過改進現有 Agent 的 Prompt 來解決？」只有當答案是肯定的，才值得新增一個 Agent。<strong>精簡的 Agent 架構往往比臃腫的架構更健壯。</strong>
+    </div>
+
+  </div>
+</div>
+
+</div><!-- /page -->
+
+<!-- FOOTER -->
+<div style="background:var(--surface);border-top:1px solid var(--border);padding:32px;text-align:center;margin-top:40px">
+  <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:2px">
+    DRAMATIX · Agentic Narrative Intelligence System · 專案規劃書 v0.1
+  </div>
+  <div style="font-size:12px;color:#2a3848;margin-top:8px">
+    架構設計基於 Save the Cat、英雄旅程、Robert McKee《故事》三大編劇理論體系
+  </div>
+</div>
+
+</body>
+</html>

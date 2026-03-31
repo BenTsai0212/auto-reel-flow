@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentic 故事框架 × 三種情境實戰</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500;700&family=Special+Elite&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ul-bg:#0a0a0f;--ul-card:#12121a;--ul-accent:#ff2244;--ul-dim:#ff224440;--ul-text:#e8e0d5;--ul-muted:#7a7080;
+  --pod-bg:#fdf6ec;--pod-card:#fff9f0;--pod-accent:#c2732a;--pod-dim:#c2732a20;--pod-text:#2c1a0e;--pod-muted:#9a7c5f;
+  --hist-bg:#0d1b2a;--hist-card:#122336;--hist-accent:#c9a84c;--hist-dim:#c9a84c30;--hist-text:#e8dfc8;--hist-muted:#7a8fa0;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans TC',sans-serif;background:#111;color:#eee;min-height:100vh}
+
+/* ── GLOBAL NAV ─────────────────────── */
+.global-nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(10,10,10,0.95);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid #222;
+  padding:0 24px;
+  display:flex;align-items:center;gap:0;
+  height:56px;
+}
+.nav-logo{
+  font-family:'Playfair Display',serif;
+  font-size:15px;color:#999;
+  margin-right:32px;white-space:nowrap;
+}
+.nav-tabs{display:flex;gap:4px;flex:1}
+.nav-tab{
+  padding:8px 20px;border-radius:6px;
+  font-size:13px;font-weight:500;
+  cursor:pointer;border:none;
+  transition:all 0.25s;
+  white-space:nowrap;
+}
+.nav-tab.ul{background:transparent;color:#ff2244;border:1px solid #ff224430}
+.nav-tab.ul.active, .nav-tab.ul:hover{background:#ff2244;color:white}
+.nav-tab.pod{background:transparent;color:#c2732a;border:1px solid #c2732a30}
+.nav-tab.pod.active, .nav-tab.pod:hover{background:#c2732a;color:white}
+.nav-tab.hist{background:transparent;color:#c9a84c;border:1px solid #c9a84c30}
+.nav-tab.hist.active, .nav-tab.hist:hover{background:#c9a84c;color:#111}
+
+/* ── HERO ─────────────────────────── */
+.hero{
+  background: linear-gradient(180deg, #0a0014 0%, #111 100%);
+  padding:72px 40px 56px;
+  text-align:center;
+  position:relative;overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 60% at 50% 0%, #ff224415 0%, transparent 70%),
+             radial-gradient(ellipse 60% 40% at 80% 80%, #c9a84c10 0%, transparent 60%),
+             radial-gradient(ellipse 60% 40% at 20% 60%, #c2732a10 0%, transparent 60%);
+}
+.hero-inner{position:relative;z-index:1;max-width:820px;margin:0 auto}
+.hero-eyebrow{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;letter-spacing:4px;color:#555;
+  text-transform:uppercase;margin-bottom:20px;
+}
+.hero h1{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(30px,5vw,54px);
+  line-height:1.2;margin-bottom:18px;
+  background:linear-gradient(135deg,#fff 0%,#aaa 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.hero-sub{font-size:15px;color:#777;max-width:600px;margin:0 auto 40px;line-height:1.9}
+.scenario-pills{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.pill{
+  padding:10px 22px;border-radius:30px;
+  font-size:13px;font-weight:600;
+  display:flex;align-items:center;gap:8px;
+  cursor:pointer;transition:transform 0.2s;
+}
+.pill:hover{transform:translateY(-2px)}
+.pill-ul{background:#ff224422;border:1px solid #ff2244;color:#ff7088}
+.pill-pod{background:#c2732a22;border:1px solid #c2732a;color:#e89a5a}
+.pill-hist{background:#c9a84c22;border:1px solid #c9a84c;color:#e8ca7a}
+
+/* ── SECTION WRAPPER ─────────────────── */
+.scenario-section{display:none}
+.scenario-section.active{display:block}
+
+/* ══════════════════════════════════════
+   URBAN LEGEND THEME
+══════════════════════════════════════ */
+.ul-section{background:var(--ul-bg);color:var(--ul-text);min-height:100vh}
+
+/* UL header */
+.ul-header{
+  background:linear-gradient(180deg,#1a0008 0%,var(--ul-bg) 100%);
+  padding:60px 40px 48px;position:relative;overflow:hidden;
+}
+.ul-header::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--ul-accent),transparent);
+}
+.glitch{
+  font-family:'Special Elite',cursive;
+  font-size:clamp(28px,4vw,48px);
+  color:white;
+  position:relative;
+  display:inline-block;
+}
+.glitch::before{
+  content:attr(data-text);
+  position:absolute;left:2px;top:0;
+  color:var(--ul-accent);
+  clip-path:polygon(0 0,100% 0,100% 35%,0 35%);
+  opacity:0.7;
+}
+.ul-tag{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;letter-spacing:3px;
+  color:var(--ul-accent);
+  text-transform:uppercase;margin-bottom:12px;display:block;
+}
+.ul-concept-seed{
+  background:var(--ul-card);
+  border:1px solid #ff224425;
+  border-left:3px solid var(--ul-accent);
+  border-radius:0 12px 12px 0;
+  padding:24px 28px;margin:28px 0;
+  position:relative;
+}
+.ul-concept-seed::before{
+  content:'SEED';
+  position:absolute;top:-10px;left:20px;
+  background:var(--ul-accent);color:white;
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:2px;
+  padding:2px 10px;border-radius:3px;
+}
+.ul-concept-seed p{font-size:14px;color:#c0b8cc;line-height:1.8}
+.ul-concept-seed strong{color:white}
+
+/* UL Framework tag */
+.fw-recommendation{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:12px 20px;border-radius:10px;margin:0 8px 16px 0;
+  font-size:13px;font-weight:600;
+}
+.fw-rec-ul{background:#ff224415;border:1px solid #ff224440;color:#ff7088}
+.fw-rec-pod{background:#c2732a15;border:1px solid #c2732a40;color:#e89a5a}
+.fw-rec-hist{background:#c9a84c15;border:1px solid #c9a84c40;color:#e8ca7a}
+.fw-rec-hybrid{background:#33224415;border:1px solid #8866aa40;color:#bb99ee}
+
+/* UL Beat cards */
+.beats-flow{display:flex;flex-direction:column;gap:0}
+.beat-card{
+  display:grid;grid-template-columns:180px 1fr 1fr;
+  gap:0;
+  border-bottom:1px solid #1a1a25;
+  transition:background 0.2s;
+}
+.beat-card:hover{background:#14141e}
+.beat-meta{
+  padding:20px 24px;
+  border-right:1px solid #1a1a25;
+  display:flex;flex-direction:column;
+  justify-content:center;gap:6px;
+}
+.beat-num-badge{
+  width:32px;height:32px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;font-weight:600;
+  flex-shrink:0;margin-bottom:6px;
+}
+.beat-name{font-size:13px;font-weight:700;color:white}
+.beat-pct-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;color:#555;letter-spacing:1px;
+}
+.beat-raw{
+  padding:20px 24px;
+  border-right:1px solid #1a1a25;
+  font-size:12px;
+  color:#666;
+  line-height:1.8;
+}
+.beat-raw .label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#444;margin-bottom:6px}
+.beat-transformed{
+  padding:20px 24px;
+  font-size:13px;
+  line-height:1.8;
+}
+.beat-transformed .label{font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.charge-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:2px 8px;border-radius:4px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;font-weight:600;
+  margin-left:8px;vertical-align:middle;
+}
+.pos{background:#0d2b1a;color:#4ade80;border:1px solid #166534}
+.neg{background:#2b0d0d;color:#f87171;border:1px solid #991b1b}
+.neu{background:#1a1a1a;color:#aaa;border:1px solid #444}
+.flip{background:#2b1a0d;color:#fb923c;border:1px solid #c2410c}
+
+.act-divider{
+  padding:10px 24px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;letter-spacing:3px;
+  text-transform:uppercase;
+  display:flex;align-items:center;gap:12px;
+}
+.act-divider::after{content:'';flex:1;height:1px;background:currentColor;opacity:0.2}
+
+/* ══════════════════════════════════════
+   PODCAST THEME
+══════════════════════════════════════ */
+.pod-section{background:var(--pod-bg);color:var(--pod-text);min-height:100vh}
+
+.pod-header{
+  background:linear-gradient(180deg,#1a0a00 0%,#3d1f00 40%,var(--pod-bg) 100%);
+  padding:60px 40px 48px;
+  color:var(--pod-text);
+}
+.pod-title{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(26px,4vw,42px);
+  color:#fff9f0;
+  line-height:1.3;margin-bottom:16px;
+}
+.pod-concept-seed{
+  background:#fff9f0;
+  border:1px solid #c2732a30;
+  border-left:4px solid var(--pod-accent);
+  border-radius:0 12px 12px 0;
+  padding:24px 28px;margin:28px 0;
+  position:relative;
+}
+.pod-concept-seed::before{
+  content:'概念種子';
+  position:absolute;top:-11px;left:20px;
+  background:var(--pod-accent);color:white;
+  font-size:10px;letter-spacing:2px;
+  padding:2px 10px;border-radius:3px;
+  font-weight:700;
+}
+.pod-concept-seed p{font-size:14px;color:#5c3a20;line-height:1.8}
+.pod-concept-seed strong{color:#2c1a0e;font-weight:700}
+
+/* Curiosity loop stages */
+.curiosity-loop{display:flex;flex-direction:column;gap:1px;background:#e8d5c0}
+.loop-stage{
+  background:var(--pod-card);
+  display:grid;grid-template-columns:220px 1fr;
+  gap:0;
+  transition:background 0.2s;
+}
+.loop-stage:hover{background:#fffcf6}
+.loop-meta{
+  padding:24px 28px;
+  background:#fdf6ec;
+  border-right:2px solid #e8d5c0;
+  display:flex;flex-direction:column;justify-content:center;gap:8px;
+}
+.loop-icon{font-size:28px;margin-bottom:4px}
+.loop-name{font-size:14px;font-weight:700;color:var(--pod-text)}
+.loop-sub{font-size:11px;color:var(--pod-muted);line-height:1.5}
+.loop-framework-note{
+  font-size:10px;
+  font-family:'JetBrains Mono',monospace;
+  color:#c2732a;letter-spacing:1px;
+  background:#c2732a15;
+  padding:3px 8px;border-radius:4px;
+  display:inline-block;margin-top:4px;
+}
+.loop-content{padding:24px 28px}
+.loop-content .raw-concept{
+  font-size:12px;color:#9a7c5f;
+  line-height:1.7;margin-bottom:12px;
+  padding:10px 14px;
+  background:#f5ece0;border-radius:6px;
+  border-left:2px solid #c2732a50;
+}
+.loop-content .transformed{
+  font-size:14px;color:var(--pod-text);
+  line-height:1.9;
+}
+.loop-content .quote-block{
+  font-family:'Noto Serif TC',serif;
+  font-size:15px;color:#5c3a20;
+  line-height:2;
+  padding:16px 20px;
+  border-left:3px solid var(--pod-accent);
+  background:#fff3e6;
+  border-radius:0 8px 8px 0;
+  margin:12px 0;
+  font-style:italic;
+}
+.tension-meter{
+  display:flex;align-items:center;gap:10px;
+  margin-top:10px;
+}
+.tension-meter label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#9a7c5f;white-space:nowrap}
+.tension-bar{
+  height:4px;border-radius:2px;
+  background:linear-gradient(90deg,var(--pod-accent),#e85c00);
+}
+
+/* ══════════════════════════════════════
+   HISTORICAL THEME
+══════════════════════════════════════ */
+.hist-section{background:var(--hist-bg);color:var(--hist-text);min-height:100vh}
+
+.hist-header{
+  background:linear-gradient(180deg,#050d18 0%,var(--hist-bg) 100%);
+  padding:60px 40px 48px;position:relative;overflow:hidden;
+}
+.hist-header::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(circle at 90% 20%,#c9a84c12,transparent 50%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='1' fill='%23c9a84c' opacity='0.08'/%3E%3C/svg%3E") repeat;
+}
+.hist-title{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(26px,4vw,44px);
+  color:var(--hist-text);
+  line-height:1.25;
+  position:relative;
+}
+.hist-title em{color:var(--hist-accent);font-style:normal}
+.hist-concept-seed{
+  background:rgba(201,168,76,0.06);
+  border:1px solid #c9a84c25;
+  border-left:3px solid var(--hist-accent);
+  border-radius:0 12px 12px 0;
+  padding:24px 28px;margin:28px 0;
+  position:relative;
+}
+.hist-concept-seed::before{
+  content:'歷史原型';
+  position:absolute;top:-11px;left:20px;
+  background:var(--hist-accent);color:#111;
+  font-size:10px;letter-spacing:2px;
+  padding:2px 10px;border-radius:3px;
+  font-weight:700;
+}
+.hist-concept-seed p{font-size:14px;color:#b0a888;line-height:1.8}
+.hist-concept-seed strong{color:var(--hist-text)}
+
+/* Journey stages */
+.journey-flow{display:flex;flex-direction:column;gap:0}
+.journey-stage{
+  display:grid;grid-template-columns:200px 1fr 1fr;
+  gap:0;border-bottom:1px solid #1a2535;
+  transition:background 0.2s;
+}
+.journey-stage:hover{background:#0f1f30}
+.journey-meta{
+  padding:22px 24px;
+  border-right:1px solid #1a2535;
+  display:flex;flex-direction:column;justify-content:center;gap:6px;
+}
+.journey-icon-box{
+  width:40px;height:40px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;margin-bottom:6px;
+  border:1px solid var(--hist-accent);
+  background:rgba(201,168,76,0.1);
+}
+.journey-stage-name{font-size:13px;font-weight:700;color:var(--hist-text)}
+.journey-stage-en{font-size:10px;color:var(--hist-muted);letter-spacing:1px}
+.charge-indicator{
+  display:flex;align-items:center;gap:6px;
+  margin-top:8px;font-size:10px;
+  font-family:'JetBrains Mono',monospace;
+}
+.ci-dot{width:8px;height:8px;border-radius:50%}
+.journey-historical{
+  padding:20px 22px;
+  border-right:1px solid #1a2535;
+  font-size:12px;color:#6a8090;line-height:1.8;
+}
+.journey-historical .label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#3a5060;margin-bottom:6px}
+.journey-dramatic{padding:20px 22px;font-size:13px;line-height:1.85;color:var(--hist-text)}
+.journey-dramatic .label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--hist-accent);margin-bottom:8px;opacity:0.8}
+.hist-quote{
+  font-family:'Playfair Display',serif;
+  font-style:italic;
+  font-size:14px;
+  color:var(--hist-accent);
+  margin:8px 0;
+  padding-left:12px;
+  border-left:2px solid var(--hist-accent);
+}
+
+/* SHARED */
+.container{max-width:1100px;margin:0 auto;padding:0 32px}
+.section-header{padding:48px 0 32px}
+.section-header h2{
+  font-family:'Playfair Display',serif;
+  font-size:26px;margin-bottom:10px;
+}
+.framework-chips{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+.chip{
+  padding:6px 14px;border-radius:20px;
+  font-size:12px;font-weight:600;
+  display:flex;align-items:center;gap:5px;
+}
+.colhead{
+  display:grid;
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;letter-spacing:2px;text-transform:uppercase;
+  padding:12px 24px;gap:0;
+}
+.section-note{
+  font-size:13px;line-height:1.8;
+  padding:16px 20px;border-radius:8px;
+  margin:20px 0;
+}
+.ul-note{background:#ff224408;border:1px solid #ff224420;color:#cc8090}
+.pod-note{background:#c2732a10;border:1px solid #c2732a25;color:#8a5030}
+.hist-note{background:#c9a84c0a;border:1px solid #c9a84c20;color:#9a8040}
+
+.legend{
+  display:flex;flex-wrap:wrap;gap:12px;
+  padding:16px 24px;margin:0;
+  font-size:11px;
+}
+.legend-item{display:flex;align-items:center;gap:6px}
+
+/* Responsive */
+@media(max-width:700px){
+  .beat-card,.loop-stage,.journey-stage{grid-template-columns:1fr}
+  .beat-raw{border-right:none;border-bottom:1px solid #1a1a25}
+  .loop-meta{border-right:none;border-bottom:2px solid #e8d5c0}
+  .journey-meta,.journey-historical{border-right:none;border-bottom:1px solid #1a2535}
+  .colhead{display:none}
+}
+
+/* Entrance animation */
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+.scenario-section.active .beat-card,
+.scenario-section.active .loop-stage,
+.scenario-section.active .journey-stage{animation:fadeUp 0.4s ease both}
+.scenario-section.active .beat-card:nth-child(1){animation-delay:0.05s}
+.scenario-section.active .beat-card:nth-child(2){animation-delay:0.08s}
+.scenario-section.active .beat-card:nth-child(3){animation-delay:0.11s}
+.scenario-section.active .beat-card:nth-child(4){animation-delay:0.14s}
+.scenario-section.active .beat-card:nth-child(5){animation-delay:0.17s}
+.scenario-section.active .beat-card:nth-child(6){animation-delay:0.20s}
+.scenario-section.active .beat-card:nth-child(7){animation-delay:0.23s}
+.scenario-section.active .beat-card:nth-child(8){animation-delay:0.26s}
+</style>
+</head>
+<body>
+
+<!-- ══ GLOBAL NAV ══ -->
+<nav class="global-nav">
+  <div class="nav-logo">Agentic Screenplay ×</div>
+  <div class="nav-tabs">
+    <button class="nav-tab ul active" onclick="switchTo('ul')">👁 YouTube 都市傳說</button>
+    <button class="nav-tab pod" onclick="switchTo('pod')">🎙 知識型 Podcast</button>
+    <button class="nav-tab hist" onclick="switchTo('hist')">⚔️ 歷史故事</button>
+  </div>
+</nav>
+
+<!-- ══ HERO ══ -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">框架選型 × 概念轉化 × 三種情境實戰</div>
+    <h1>同一個故事種子<br>三種敘事架構的不同命運</h1>
+    <p class="hero-sub">不同的內容媒介有不同的「能量法則」。以下展示如何為 YouTube 都市傳說、知識型 Podcast、歷史故事各自挑選最合適的框架模型，並逐階段呈現概念如何轉化為具有衝擊力的劇情。</p>
+    <div class="scenario-pills">
+      <div class="pill pill-ul" onclick="switchTo('ul')">👁 都市傳說：死者的最後訊息</div>
+      <div class="pill pill-pod" onclick="switchTo('pod')">🎙 Podcast：你的記憶根本不存在</div>
+      <div class="pill pill-hist" onclick="switchTo('hist')">⚔️ 歷史：特斯拉 vs 愛迪生電流大戰</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCENARIO 1：URBAN LEGEND (YouTube)
+══════════════════════════════════════════ -->
+<div class="scenario-section active" id="s-ul">
+<div class="ul-section">
+<div class="ul-header">
+  <div class="container">
+    <span class="ul-tag">情境 01 · YouTube 都市傳說</span>
+    <div class="glitch" data-text="死者的最後一則訊息">死者的最後一則訊息</div>
+    <p style="color:#8a7a90;font-size:14px;margin-top:14px;line-height:1.8">一則在 PTT 流傳的真實事件：有人收到去世三年的朋友的 LINE 訊息，回覆了一個「你好嗎」。</p>
+
+    <div class="framework-chips" style="margin-top:24px">
+      <div class="chip fw-rec-ul" style="background:#ff224418;border:1px solid #ff2244;color:#ff9090">🎯 主框架：Save the Cat × 15 Beats</div>
+      <div class="chip fw-rec-hybrid" style="background:#88224418;border:1px solid #9966cc;color:#cc99ff">⚡ 輔助：McKee 電荷監控（每個 Beat 追蹤 Charge）</div>
+      <div class="chip" style="background:#22334418;border:1px solid #4466aa;color:#99bbdd;font-size:12px;font-weight:600;padding:6px 14px;border-radius:20px">📌 為什麼？YouTube 觀眾需要精準的 Hook（前30秒即決定去留）、清晰的懸念階梯、以及高度可分享的「翻轉瞬間」——Save the Cat 的節拍百分比讓這些都變得可計算與可控制</div>
+    </div>
+
+    <div class="ul-concept-seed">
+      <p><strong>原始素材（Raw Seed）：</strong>有人收到三年前去世的朋友 LINE 傳來的訊息，只有兩個字——「你好嗎」。發送時間是深夜 3:07 AM。</p>
+    </div>
+
+    <div class="section-note ul-note">
+      💡 <strong>Agent Flow 策略：</strong>「同理心建立代理人」在 Beat 1–3 確保觀眾先認同主角；「電荷監控代理人」在每個 Beat 節點檢查正/負電荷是否確實反轉；「對白暗殺者」移除所有「我好害怕」類型的直白台詞，改為角色的異常行為（例如：他把手機屏幕朝下放，卻一直看）。
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><span class="charge-badge pos">＋</span> 正電荷（希望/安全）</div>
+      <div class="legend-item"><span class="charge-badge neg">－</span> 負電荷（恐懼/失控）</div>
+      <div class="legend-item"><span class="charge-badge flip">↻</span> 電荷翻轉（鴻溝事件）</div>
+      <div class="legend-item"><span class="charge-badge neu">○</span> 中性（過渡）</div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="colhead" style="grid-template-columns:180px 1fr 1fr;color:#333;padding:10px 24px">
+    <span>節拍 / 進度</span><span>通用概念（未處理）</span><span>轉化後的劇情（YouTube 都市傳說版）</span>
+  </div>
+
+  <div class="beats-flow">
+
+    <!-- ACT 1 -->
+    <div class="act-divider" style="color:#2563eb;background:#0a0a1a">第一幕 · 鉤子與建立</div>
+
+    <!-- Beat 1 -->
+    <div class="beat-card">
+      <div class="beat-meta">
+        <div class="beat-num-badge" style="background:#ff224420;border:1px solid #ff2244;color:#ff7088">01</div>
+        <div class="beat-name">開場畫面</div>
+        <div class="beat-pct-label">0–1% · ACT 1</div>
+      </div>
+      <div class="beat-raw">
+        <div class="label">通用功能</div>
+        建立故事基調與角色的初始狀態，讓觀眾在最快速度內被吸引
+      </div>
+      <div class="beat-transformed">
+        <div class="label" style="color:#ff7088">轉化後 · YouTube 版</div>
+        <strong style="color:white">畫面：</strong>手機鎖屏，3:07 AM，LINE 通知亮起——顯示名稱是一個被劃掉的名字。旁白（不帶情緒）：「這是一個我沒辦法用任何邏輯解釋的事件。」
+        <span class="charge-badge neg">－ 不安</span>
+        <div style="font-size:11px;color:#666;margin-top:8px">⟶ 黑畫面停頓 2 秒後接標題。不解釋，只拋出問號。</div>
+      </div>
+    </div>
+
+    <!-- Beat 2 -->
+    <div class="beat-card">
+      <div class="beat-meta">
+        <div class="beat-num-badge" style="background:#ff224420;border:1px solid #ff2244;color:#ff7088">02</div>
+        <div class="beat-name">主題陳述</div>
+        <div class="beat-pct-label">5% · ACT 1</div>
+      </div>
+      <div class="beat-raw">
+        <div class="label">通用功能</div>
+        透過對白暗示故事潛藏的道德教訓（不直接說出）
+      </div>
+      <div class="beat-transformed">
+        <div class="label" style="color:#ff7088">轉化後 · YouTube 版</div>
+        旁白說：「我那時候一直在想，如果一個人消失了，他的帳號還在，那他算——消失嗎？」
+        <span class="charge-badge neu">○ 懸問</span>
+        <div style="font-size:11px;color:#666;margin-top:8px">⟶ 真正的主題：數位時代，「死亡」的邊界在哪裡？這句話在第三幕才完整呼應。</div>
+      </div>
+    </div>
+
+    <!-- Beat 3 -->
+    <div class="beat-card">
+      <div class="beat-meta">
+        <div class="beat-num-badge" style="background:#ff224420;border:1px solid #ff2244;color:#ff7088">03</div>
+        <div class="beat-name">鋪陳 Set-up</div>
+        <div class="beat-pct-label">1–10% · ACT 1</div>
+      </div>
+      <div class="beat-raw">
+        <div class="label">通用功能</div>
+        介紹主角的世界、缺陷與輔助角色
+      </div>
+      <div class="beat-transformed">
+        <div class="label" style="color:#ff7088">轉化後 · YouTube 版</div>
+        主角「阿翔」：一個社群媒體重度使用者，但三年前失去了最好的朋友「小昱」，事故死亡。阿翔有一個習慣：每年這天都會滑一次小昱的 FB 主頁，只是「看看」。
+        <span class="charge-badge pos">＋ 日常/同情</span>
+        <div style="font-size:11px;color:#666;margin-top:8px">⟶「同理心建立代理人」任務：觀眾必須在這裡對阿翔產生情感投資，才願意跟著走完後面的恐懼旅程。</div>
+      </div>
+    </div>
+
+    <!-- Beat 4 CATALYST -->
+    <div class="beat-card" style="background:#1a0808">
+      <div class="beat-meta">
+        <div class="beat-num-badge" style="background:#ff2244;color:white">04</div>
+        <div class="beat-name" style="color:#ff7088">催化劑 🔥</div>
+        <div class="beat-pct-label">10% · ACT 1</div>
+      </div>
+      <div class="beat-raw">
+        <div class="label">通用功能</div>
+        打破現狀的煽動性事件——不可逆的改變
+      </div>
+      <div class="beat-transformed">
+        <div class="label" style="color:#ff7088">轉化後 · YouTube 版</div>
+        深夜，手機震動。LINE 訊息，發送者：小昱。內容：「你好嗎」
+        <span class="charge-badge flip">↻ 翻轉</span><span class="charge-badge neg">－</span>
+        <div style="font-size:11px;color:#666;margin-top:8px">⟶ 電荷從「日常正」瞬間跳到「深度負」。阿翔做的第一件事不是尖叫——他點進去，想確認發送時間：3:07 AM。小昱出事的時間，也是 3:07。</div>
+      </div>
+    </div>
+
+    <!-- Beat 5 -->
+    <div class="beat-card">
+      <div class="beat-meta">
+        <div class="beat-num-badge" style="background:#ff224420;border:1px solid #ff2244;color:#ff7088">05</div>
+        <div class="beat-name">辯論 Debate</div>
+        <div class="beat-pct-label">10–20% · ACT 1</div>
+      </div>
+      <div class="beat-raw">
+        <div class="label">通用功能</div>
+        主角面對改變的猶豫、恐懼或猶疑
+      </div>
+      <div class="beat-transformed">
+        <div class="label" style="color:#ff7088">轉化後 · YouTube 版</div>
+        理性解釋輪番出現：帳號被盜？定時發送軟體？粉絲惡作劇？阿翔去查了小昱的帳號——最後登入時間顯示：「三年前」，卻有一個橘點，代表「對方正在線上」。
+        <span class="charge-badge neg">－ 認知失調</span>
+        <div style="font-size:11px;color:#666;margin-top:8px">⟶「辯論」的 YouTube 版功能是讓觀眾跟著主角一起「想合理解釋但想不通」，建立共同焦慮。</div>
+      </div>
+    </div>
+
+    <!-- ACT 2 -->
+    <div class="act-divider" style="color:#16a34a;background:#08120a">第二幕 · 深淵探索</div>
+
+    <!-- Beat 6 -->
+    <div class="beat-card">
+      <div class="beat-meta">
+        <div class="beat-num-badge" style="background:#16a34a30;border:1px solid #16a34a;color:#4ade80">06</div>
+        <div class="beat-name">進入第二幕</div>
+        <div class="beat-pct-label">20% · ACT 2</div>
+      </div>
+      <div class="beat-raw">
+        <div class="label">通用功能</div>
+        主動決定離開舊世界，進入冒險——點不回頭的選擇
+      </div>
+      <div class="beat-transformed">
+        <div class="label" style="color:#ff7088">轉化後 · YouTube 版</div>
+        阿翔做了一個所有人都不該做的事：他<strong style="color:white">回覆了</strong>那則訊息。只打了兩個字：「我很好。」然後，訊息顯示「已讀」。
+        <span class="charge-badge flip">↻ 翻轉</span>
+        <div style="font-size:11px;color:#666;margin-top:8px">⟶ 這是不可逆的行動。觀眾心裡大喊「不要！」的那一刻，就是 Break into Two 完成的時刻。</div>
+      </div>
+    </div>
+
+    <!-- Beat 8 FUN AND GAMES -->
+    <div class="beat-card">
+      <div class="beat-meta">
+        <div class="beat-num-badge" style="background:#16a34a30;border:1px solid #16a34a;color:#4ade80">08</div>
+        <div class="beat-name">玩樂與遊戲 ⭐</div>
+        <div class="beat-pct-label">20–50% · ACT 2</div>
+      </div>
+      <div class="beat-raw">
+        <div class="label">通用功能</div>
+        展現故事前提的精采片段——預告片高光、最具傳播性的部分
+      </div>
+      <div class="beat-transformed">
+        <div class="label" style="color:#ff7088">轉化後 · YouTube 版</div>
+        對話繼續了三天。「它」知道很多只有小昱才知道的事：阿翔媽媽的手術、某個從未說出口的秘密、以及一個兩人之間的暗號。但「它」從不問任何問題——只是回應。完全精確的回應。
+        <span class="charge-badge neg">－ 恐懼加深</span>
+        <div style="font-size:11px;color:#666;margin-top:8px">⟶ YouTube 的「Fun and Games」是最多人截圖分享的部分。每一個細節都要足夠具體到讓觀眾懷疑：「如果是我，我也不會知道這是假的。」</div>
+      </div>
+    </div>
+
+    <!-- Beat 9 MIDPOINT -->
+    <div class="beat-card" style="background:#1a0a00">
+      <div class="beat-meta">
+        <div class="beat-num-badge" style="background:#ea580c;color:white">09</div>
+        <div class="beat-name" style="color:#fb923c">中點 Midpoint 🎯</div>
+        <div class="beat-pct-label">50% · ACT 2</div>
+      </div>
+      <div class="beat-raw">
+        <div class="label">通用功能</div>
+        賭注升高，主角陷入不歸路——假勝利或假失敗
+      </div>
+      <div class="beat-transformed">
+        <div class="label" style="color:#fb923c">轉化後 · YouTube 版（假失敗型）</div>
+        阿翔終於對「它」說：「你不是小昱，你是誰？」對話停止了整整 48 小時。阿翔以為結束了，開始鬆了口氣——第 49 小時，收到一張照片：是阿翔昨晚在家的樣子，從窗外拍的。
+        <span class="charge-badge flip">↻ 最大翻轉</span><span class="charge-badge neg">－－</span>
+        <div style="font-size:11px;color:#666;margin-top:8px">⟶ 中點的功能是把恐懼從「抽象/數位」拉進「物理現實」。觀眾的恐懼等級在這裡完成跳級。</div>
+      </div>
+    </div>
+
+    <!-- Beat 11 ALL IS LOST -->
+    <div class="beat-card" style="background:#160008">
+      <div class="beat-meta">
+        <div class="beat-num-badge" style="background:#dc2626;color:white">11</div>
+        <div class="beat-name" style="color:#f87171">一無所有 💀</div>
+        <div class="beat-pct-label">75% · ACT 2</div>
+      </div>
+      <div class="beat-raw">
+        <div class="label">通用功能</div>
+        主角遭遇重大打擊，「死亡的氣味」出現
+      </div>
+      <div class="beat-transformed">
+        <div class="label" style="color:#f87171">轉化後 · YouTube 版</div>
+        警察告訴阿翔：他報案的那隻手機號碼，去年已經被重新分配給一個新用戶——一個在事發當晚死於車禍的女大學生。她死亡的時間：3:07 AM。
+        <span class="charge-badge neg">－－－ 崩潰</span>
+        <div style="font-size:11px;color:#666;margin-top:8px">⟶「死亡的氣味」在 YouTube 都市傳說裡通常是把恐懼做到最大——觀眾開始真正相信「這是真的」。</div>
+      </div>
+    </div>
+
+    <!-- ACT 3 -->
+    <div class="act-divider" style="color:#9333ea;background:#0f0818">第三幕 · 真相與代價</div>
+
+    <!-- Beat 13 -->
+    <div class="beat-card">
+      <div class="beat-meta">
+        <div class="beat-num-badge" style="background:#9333ea30;border:1px solid #9333ea;color:#c084fc">13</div>
+        <div class="beat-name">進入第三幕</div>
+        <div class="beat-pct-label">85% · ACT 3</div>
+      </div>
+      <div class="beat-raw">
+        <div class="label">通用功能</div>
+        獲得新啟示後，決定發起最後反擊
+      </div>
+      <div class="beat-transformed">
+        <div class="label" style="color:#ff7088">轉化後 · YouTube 版</div>
+        阿翔突然意識到：所有「它」說的事，都是阿翔<strong style="color:white">在 LINE 貼文、限時動態裡公開說過的</strong>。「它」從未真正知道任何秘密——是阿翔自己把碎片餵給了它。
+        <span class="charge-badge pos">＋ 清醒</span>
+        <div style="font-size:11px;color:#666;margin-top:8px">⟶ 真相是：恐懼來自阿翔自己的資料。這個反轉同時完成了主題陳述：「我們把自己最脆弱的部分，全都餵給了網路。」</div>
+      </div>
+    </div>
+
+    <!-- Beat 15 FINAL IMAGE -->
+    <div class="beat-card">
+      <div class="beat-meta">
+        <div class="beat-num-badge" style="background:#9333ea30;border:1px solid #9333ea;color:#c084fc">15</div>
+        <div class="beat-name">結尾畫面</div>
+        <div class="beat-pct-label">100% · ACT 3</div>
+      </div>
+      <div class="beat-raw">
+        <div class="label">通用功能</div>
+        與開場畫面形成對比，視覺化角色的轉變
+      </div>
+      <div class="beat-transformed">
+        <div class="label" style="color:#ff7088">轉化後 · YouTube 版</div>
+        阿翔刪除了小昱的 LINE 對話紀錄，把手機螢幕朝上放在桌上。旁白：「我那天才真正跟小昱道了別——不是因為那個帳號，而是因為我終於願意讓他走了。」
+        <br><br>
+        <strong style="color:#ff5577">最後一幕（彩蛋）：</strong>鏡頭停在桌上的手機。3:07 AM，螢幕亮起，一則 LINE 通知，發送者：「小昱」。
+        <span class="charge-badge neg">－ 懸而未決</span>
+        <div style="font-size:11px;color:#666;margin-top:8px">⟶ YouTube 都市傳說永遠不完全收尾——給觀眾留下「也許是真的」的空間，這正是最高轉發率的結局公式。</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCENARIO 2：KNOWLEDGE PODCAST
+══════════════════════════════════════════ -->
+<div class="scenario-section" id="s-pod">
+<div class="pod-section">
+<div class="pod-header">
+  <div class="container">
+    <span class="ul-tag" style="color:#c2732a">情境 02 · 知識型 Podcast</span>
+    <div class="pod-title">你的記憶，<br>根本不曾「存在」過</div>
+    <p style="color:#b08060;font-size:14px;margin-top:14px;line-height:1.8">一個讓所有人都能立刻感受到衝擊的認知科學議題：人類的記憶並不是「回放」，而是每次被呼叫時重新被「建構」——而且每次都在偷偷改寫自己。</p>
+
+    <div class="framework-chips" style="margin-top:24px">
+      <div class="chip fw-rec-pod">🎯 主框架：自創「知識英雄旅程」= 三幕骨架 ＋ HJ 情感弧 ＋ McKee 鴻溝機制</div>
+      <div class="chip fw-rec-hybrid">💡 輔助：「好奇心迴圈」節奏控制（每段製造知識懸念後才解答）</div>
+      <div class="chip" style="background:#22334418;border:1px solid #c2732a30;color:#9a7060;font-size:12px;font-weight:600;padding:6px 14px;border-radius:20px">📌 為什麼？Podcast 聽眾沒有視覺刺激，需要靠「情感的知識旅程」維持注意力。HJ 讓聽眾自己成為「英雄」——他們的舊認知是「平凡世界」，節目就是帶他們「跨越門檻」</div>
+    </div>
+
+    <div class="pod-concept-seed">
+      <p><strong>原始素材（Raw Seed）：</strong>記憶並非錄影機，而是每次被提取時重新建構，且每次建構都可能引入新的偏差——即「記憶重構理論」（Memory Reconsolidation），Elizabeth Loftus 的實驗。</p>
+    </div>
+
+    <div class="section-note pod-note">
+      💡 <strong>Agent Flow 策略：</strong>以「聽眾即英雄」為設計核心——聽眾的「舊認知」是需要被打破的「平凡世界」。每個階段都包含一個「好奇心鉤子」（開放懸念）和一個「認知著陸點」（給出滿足感），交替出現以維持節奏。
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="colhead" style="grid-template-columns:220px 1fr;color:#c2732a;background:#fdf6ec;border-bottom:2px solid #e8d5c0">
+    <span>旅程階段</span><span>概念轉化（Podcast 腳本邏輯）</span>
+  </div>
+
+  <div class="curiosity-loop">
+
+    <div class="loop-stage">
+      <div class="loop-meta">
+        <div class="loop-icon">🏡</div>
+        <div class="loop-name">① 平凡世界打破</div>
+        <div class="loop-sub">聽眾的舊世界觀<br>（錯誤但舒適的信念）</div>
+        <span class="loop-framework-note">HJ: Ordinary World</span>
+        <div class="tension-meter" style="margin-top:8px"><label>張力</label><div class="tension-bar" style="width:15%;background:linear-gradient(90deg,#c2732a,#e85c00)"></div></div>
+      </div>
+      <div class="loop-content">
+        <div class="raw-concept">通用概念：介紹主角的缺陷與未滿足的需求，強調其「匱乏」</div>
+        <div class="transformed">
+          在 Podcast 裡，「主角」是<strong>聽眾自己</strong>，而他們的「缺陷」是一個錯誤但舒適的信念。
+          <div class="quote-block">「你有沒有那種感覺——某件事明明記得很清楚，清楚到連細節都歷歷在目，但後來發現，根本不是那樣？」</div>
+          主持人先讓聽眾自我對照，在心裡點頭說「對！」這個「點頭瞬間」建立了情感投資，等同於 Save the Cat 的「救貓咪行為」。
+        </div>
+      </div>
+    </div>
+
+    <div class="loop-stage">
+      <div class="loop-meta">
+        <div class="loop-icon">📣</div>
+        <div class="loop-name">② 催化劑：衝擊事實</div>
+        <div class="loop-sub">一個讓聽眾「等等，什麼？」<br>的驚人陳述</div>
+        <span class="loop-framework-note">STC: Catalyst (10%)</span>
+        <div class="tension-meter" style="margin-top:8px"><label>張力</label><div class="tension-bar" style="width:40%;background:linear-gradient(90deg,#c2732a,#e85c00)"></div></div>
+      </div>
+      <div class="loop-content">
+        <div class="raw-concept">通用概念：打破現狀的煽動性事件，迫使主角（聽眾）動作</div>
+        <div class="transformed">
+          這是「鴻溝」（McKee Gap）的第一次引爆：期待（「記憶是我自己的經歷，怎麼可能假？」）vs. 現實。
+          <div class="quote-block">「1974 年，一批心理學家做了一個實驗：他們讓人看一段沒有車禍的影片，然後問：『那輛車撞上去的時候，時速大概多少？』——所有人都描述出了一場根本沒發生的車禍。記憶，是可以被問題本身植入的。」</div>
+          <div style="font-size:12px;color:#9a7c5f;margin-top:8px">⟶ 催化劑的 Podcast 版功能：製造「認知失衡」（Cognitive Dissonance），讓聽眾無法用舊框架理解，強迫繼續聽下去。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="loop-stage">
+      <div class="loop-meta">
+        <div class="loop-icon">😰</div>
+        <div class="loop-name">③ 拒絕召喚：抵抗</div>
+        <div class="loop-sub">聽眾的防衛機制<br>主持人要主動「說出」它</div>
+        <span class="loop-framework-note">HJ: Refusal of the Call</span>
+        <div class="tension-meter" style="margin-top:8px"><label>張力</label><div class="tension-bar" style="width:35%"></div></div>
+      </div>
+      <div class="loop-content">
+        <div class="raw-concept">通用概念：心理慣性與恐懼導致的逃避，需要「對白代理人」展現自我懷疑</div>
+        <div class="transformed">
+          在 Podcast 裡，「拒絕召喚」是<strong>主持人代替聽眾說出他們心裡的防衛反應</strong>。這個技巧讓聽眾感覺「被理解」，從而願意繼續跟著走。
+          <div class="quote-block">「我知道你現在可能在想：『這不一樣，那只是別人，我的記憶是真實的。』——事實上，這正是問題所在。愈是自信自己記得很清楚的人，愈容易出錯。信心和準確性，根本沒有相關性。」</div>
+          <div style="font-size:12px;color:#9a7c5f;margin-top:8px">⟶「對白暗殺者」在這裡的任務：把「你可能有誤解」這句直白的話，轉化為「我知道你在想什麼，但你錯了」的更有力量的表述形式。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="loop-stage">
+      <div class="loop-meta">
+        <div class="loop-icon">🧙</div>
+        <div class="loop-name">④ 導師現身：框架給予</div>
+        <div class="loop-sub">科學家 / 研究 / 實驗<br>成為「導師角色」</div>
+        <span class="loop-framework-note">HJ: Meeting the Mentor</span>
+        <div class="tension-meter" style="margin-top:8px"><label>張力</label><div class="tension-bar" style="width:50%"></div></div>
+      </div>
+      <div class="loop-content">
+        <div class="raw-concept">通用概念：獲得知識、工具或信念的指引，模擬智慧且具備啟發性的互動</div>
+        <div class="transformed">
+          知識型 Podcast 最強大的「導師」，是讓一個研究者的故事變成鮮活的對白，而非乾燥引用。
+          <div class="quote-block">「Elizabeth Loftus 第一次向法庭提出記憶可以被植入的觀點時，沒有任何人相信她。她說：『我收到的仇恨信件和死亡威脅，比我做過的實驗還多。』——但她知道，如果記憶可以被植入，那麼有多少人因為一段假記憶的証詞，正在獄中？」</div>
+          <div style="font-size:12px;color:#9a7c5f;margin-top:8px">⟶ 導師的具體化：賦予科學一個「人的代價」。這正是讓知識從「有趣」升級為「重要」的關鍵步驟。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="loop-stage">
+      <div class="loop-meta">
+        <div class="loop-icon">🕳️</div>
+        <div class="loop-name">⑤ 深入洞穴：核心困難</div>
+        <div class="loop-sub">最複雜、最反直覺的部分<br>需要最高密度的具體化</div>
+        <span class="loop-framework-note">HJ: Ordeal + McKee Gap</span>
+        <div class="tension-meter" style="margin-top:8px"><label>張力</label><div class="tension-bar" style="width:90%;background:linear-gradient(90deg,#c2732a,#e85c00)"></div></div>
+      </div>
+      <div class="loop-content">
+        <div class="raw-concept">通用概念：準備面對最終極的恐懼，「批判代理人」檢查情感張力是否達到巔峰</div>
+        <div class="transformed">
+          CONCOCT 系統在這裡作用：對核心概念進行<strong>最高密度的具體化</strong>，不允許「這是個很複雜的問題」式的模糊處理。
+          <div class="quote-block">「記憶重構（Reconsolidation）的意思是：每次你想起一件事，你的大腦就把那段記憶解凍，用現在的情緒重新組裝，再冰回去。所以你今天想起的初吻，其實已經被你失戀的痛苦、被你後來讀過的愛情小說、被你昨晚看的電影，改寫過無數次了。你記得的，是你最近一次『建構』它的版本——不是原版。」</div>
+          <div style="font-size:12px;color:#9a7c5f;margin-top:8px">⟶ McKee 鴻溝在這裡：聽眾「期待」自己的記憶是固定的資產，「現實」是它每次被提取都在被覆寫。Scene Energy 最大化。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="loop-stage">
+      <div class="loop-meta">
+        <div class="loop-icon">🌟</div>
+        <div class="loop-name">⑥ 帶仙丹歸來：轉化智慧</div>
+        <div class="loop-sub">知識如何改變聽眾<br>的日常認知與行動</div>
+        <span class="loop-framework-note">HJ: Return with Elixir</span>
+        <div class="tension-meter" style="margin-top:8px"><label>張力</label><div class="tension-bar" style="width:30%;background:linear-gradient(90deg,#c2732a50,#e85c0050)"></div></div>
+      </div>
+      <div class="loop-content">
+        <div class="raw-concept">通用概念：將智慧帶回平凡世界，「總結代理人」綜合主題與視覺反饋</div>
+        <div class="transformed">
+          Podcast「仙丹」的標準是：聽眾今天就能用，並且願意分享給別人。
+          <div class="quote-block">「下次你和某個人爭論一件往事的細節，先想一想——你們兩個都沒有說謊，你們只是各自攜帶了那段記憶不同版本的建構物。與其問『誰記得對』，也許更重要的問題是：在你最近一次想起那件事的時候，你帶著什麼樣的心情？」</div>
+          <div style="font-size:12px;color:#9a7c5f;margin-top:8px">⟶ 完成「聽眾英雄旅程」：他們帶著改變了世界觀的認知工具回到日常生活。這是所有知識型 Podcast 的終極設計目標。</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCENARIO 3：HISTORICAL STORY
+══════════════════════════════════════════ -->
+<div class="scenario-section" id="s-hist">
+<div class="hist-section">
+<div class="hist-header">
+  <div class="container" style="position:relative;z-index:1">
+    <span class="ul-tag" style="color:#c9a84c">情境 03 · 歷史故事</span>
+    <div class="hist-title">特斯拉 vs 愛迪生：<br><em>一個天才的流放與復活</em></div>
+    <p style="color:#6a8090;font-size:14px;margin-top:14px;line-height:1.8">1884 年，特斯拉帶著一封愛迪生的推薦信抵達紐約，信上寫著：「我認識兩個偉大的人，一個是你，另一個是這位年輕人。」——六個月後，他被解雇了。</p>
+
+    <div class="framework-chips" style="margin-top:24px">
+      <div class="chip fw-rec-hist">🎯 主框架：英雄旅程（完整 12 階段）</div>
+      <div class="chip fw-rec-hybrid">⚡ 輔助：麥基電荷監控（標記每個歷史轉折點的 +/- 變化）</div>
+      <div class="chip" style="background:#22334418;border:1px solid #c9a84c30;color:#9a8060;font-size:12px;font-weight:600;padding:6px 14px;border-radius:20px">📌 為什麼？歷史人物的生命本身就是英雄旅程的活教材。電荷監控讓歷史轉折點的戲劇性可視化——「電流大戰」每一個歷史事件都可被標記為正/負電荷翻轉，讓觀眾真實感受到命運的翻轉節奏</div>
+    </div>
+
+    <div class="hist-concept-seed">
+      <p><strong>歷史原型：</strong>1884–1891 年，特斯拉抵達美國、在愛迪生手下工作、被拒絕薪酬承諾、另起爐灶、發明交流電系統、贏得世博會照明合約、最終在電流大戰中擊敗愛迪生的直流電。</p>
+    </div>
+
+    <div class="section-note hist-note">
+      💡 <strong>Agent Flow 策略：</strong>「敘事歷史學家代理人」確保每個歷史事件的時間線準確，並追蹤特斯拉的「內在缺陷」（過度理想化人性）如何在旅程中被反覆挑戰。麥基電荷監控使每一個歷史日期都不只是數字，而是一次戲劇性的命運轉換。
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><span class="charge-badge pos">＋</span> 正電荷（希望/勝利）</div>
+      <div class="legend-item"><span class="charge-badge neg">－</span> 負電荷（失落/背叛）</div>
+      <div class="legend-item"><span class="charge-badge flip">↻</span> 電荷翻轉（鴻溝事件）</div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="colhead" style="grid-template-columns:200px 1fr 1fr;color:#c9a84c;background:#0d1b2a;border-bottom:1px solid #1a2535">
+    <span>旅程階段</span><span>歷史事實層（未加工）</span><span>戲劇化轉化（電荷標記）</span>
+  </div>
+
+  <div class="journey-flow">
+
+    <!-- Stage 1: Ordinary World -->
+    <div class="journey-stage">
+      <div class="journey-meta">
+        <div class="journey-icon-box">🏠</div>
+        <div class="journey-stage-name">① 平凡世界</div>
+        <div class="journey-stage-en">Ordinary World</div>
+        <div class="charge-indicator">
+          <div class="ci-dot" style="background:#4ade80"></div>
+          <span style="color:#4ade80">初始電荷：＋</span>
+        </div>
+      </div>
+      <div class="journey-historical">
+        <div class="label">歷史記錄</div>
+        1856 年生於塞爾維亞，從小展現驚人的數學天賦與過目不忘的記憶力。在格拉茨理工學院因研究交流電被教授認為是「浪費時間的危險思想」。1882 年，在布達佩斯公園散步時，交流電感應馬達的完整圖像「突然出現在眼前」，他用棍子在沙地上畫出了設計圖。
+      </div>
+      <div class="journey-dramatic">
+        <div class="label">戲劇化轉化</div>
+        特斯拉的「平凡世界」是一個被世界看作瘋子的天才。他的「缺陷」不是能力不足，而是他相信：偉大的想法終將被偉大的人看見。
+        <div class="hist-quote">「我看到閃電，我就看到了答案。世界上的能量取之不盡，我只是第一個看清楚的人。」</div>
+        電荷：特斯拉擁有無限的理想主義資本，但這個資本即將被現實一次次地消耗。
+        <span class="charge-badge pos">＋ 天才光環 · 未受考驗</span>
+      </div>
+    </div>
+
+    <!-- Stage 2: Call to Adventure -->
+    <div class="journey-stage">
+      <div class="journey-meta">
+        <div class="journey-icon-box">📣</div>
+        <div class="journey-stage-name">② 冒險召喚</div>
+        <div class="journey-stage-en">Call to Adventure</div>
+        <div class="charge-indicator">
+          <div class="ci-dot" style="background:#4ade80"></div>
+          <span style="color:#4ade80">電荷：＋＋</span>
+        </div>
+      </div>
+      <div class="journey-historical">
+        <div class="label">歷史記錄</div>
+        1884 年，特斯拉帶著愛迪生前同事 Charles Batchelor 的推薦信抵達紐約。信上寫道（傳說版本）：「我認識兩個偉大的人，一個是你，另一個是這位年輕人。」愛迪生在見面當天就讓他加入團隊。
+      </div>
+      <div class="journey-dramatic">
+        <div class="label">戲劇化轉化</div>
+        這是特斯拉一生中最接近「被正確看見」的一刻。他相信愛迪生就是那個能理解他的人。
+        <div class="hist-quote">「他是我見過的唯一一個能在同一時間處理六件事的人。我立刻知道，我找到了我的地方。」</div>
+        <span class="charge-badge pos">＋＋ 理想國入口</span>
+      </div>
+    </div>
+
+    <!-- Stage 4: Meeting the Mentor (becomes enemy) -->
+    <div class="journey-stage">
+      <div class="journey-meta">
+        <div class="journey-icon-box">⚔️</div>
+        <div class="journey-stage-name">④ 遇見導師/敵人</div>
+        <div class="journey-stage-en">Mentor / Shadow</div>
+        <div class="charge-indicator">
+          <div class="ci-dot" style="background:#f87171"></div>
+          <span style="color:#f87171">電荷：↻ 翻轉</span>
+        </div>
+      </div>
+      <div class="journey-historical">
+        <div class="label">歷史記錄</div>
+        愛迪生承諾，若特斯拉能改善他的直流電發電機效率，就付他 5 萬美元（相當於今日逾 100 萬美元）。特斯拉完成了。愛迪生的回應：「特斯拉，你還不了解美國式的幽默。」——分文未付。
+      </div>
+      <div class="journey-dramatic">
+        <div class="label">戲劇化轉化</div>
+        英雄旅程中，導師的功能是給予工具或啟示。愛迪生反轉了這個角色——他成為「陰影原型」（Shadow Archetype），逼迫特斯拉面對他最大的缺陷：他以為聰明足以換得公平。
+        <div class="hist-quote">「那天晚上，我沿著哈德遜河走了很長一段路。我明白了：在這個世界上，發明不是貨幣——只有輕易利用別人、才是。」</div>
+        <span class="charge-badge flip">↻ 最大翻轉</span><span class="charge-badge neg">－ 信仰破碎</span>
+      </div>
+    </div>
+
+    <!-- Stage 6: Tests, Allies, Enemies -->
+    <div class="journey-stage">
+      <div class="journey-meta">
+        <div class="journey-icon-box">🏗️</div>
+        <div class="journey-stage-name">⑥ 試煉與盟友</div>
+        <div class="journey-stage-en">Tests, Allies, Enemies</div>
+        <div class="charge-indicator">
+          <div class="ci-dot" style="background:#fb923c"></div>
+          <span style="color:#fb923c">電荷：－ → ＋</span>
+        </div>
+      </div>
+      <div class="journey-historical">
+        <div class="label">歷史記錄</div>
+        特斯拉創立自己的公司，卻被投資人強迫製造弧光燈而非他真正想做的東西。公司被奪走，他落到在街頭挖溝維生。後來，喬治·威斯汀豪斯（George Westinghouse）找到了他，買下了交流電專利。
+      </div>
+      <div class="journey-dramatic">
+        <div class="label">戲劇化轉化</div>
+        挖溝的那段日子是英雄旅程中最罕見的「完全剝奪」——連象徵性的尊嚴都被拿走了。但這正是轉化的預備期：威斯汀豪斯是第一個讓特斯拉的交流電夢想「有了身體」的人。
+        <div class="hist-quote">「威斯汀豪斯是唯一一個不問我『這賺得了錢嗎』就先問『這改變得了世界嗎』的商人。」</div>
+        <span class="charge-badge neg">－ 挖溝時期</span>→<span class="charge-badge pos">＋ 盟友出現</span>
+      </div>
+    </div>
+
+    <!-- Stage 8: Ordeal (War of Currents) -->
+    <div class="journey-stage" style="background:#0a1520">
+      <div class="journey-meta">
+        <div class="journey-icon-box" style="border-color:#dc2626;background:rgba(220,38,38,0.1)">💀</div>
+        <div class="journey-stage-name">⑧ 核心苦難</div>
+        <div class="journey-stage-en">The Ordeal · 電流大戰</div>
+        <div class="charge-indicator">
+          <div class="ci-dot" style="background:#dc2626"></div>
+          <span style="color:#dc2626">電荷：－－ 最低點</span>
+        </div>
+      </div>
+      <div class="journey-historical">
+        <div class="label">歷史記錄</div>
+        愛迪生發動「恐懼公關戰」：公開電死動物（包括大象「托普西」）以證明交流電的「危險性」。他遊說立法機關，用交流電打造了世界第一把電椅。特斯拉的名字被和「死亡」綁在一起。
+      </div>
+      <div class="journey-dramatic">
+        <div class="label">戲劇化轉化</div>
+        麥基鴻溝在這裡達到最大值：特斯拉期待「最好的技術會勝利」，現實是「最能製造恐懼的人才會勝利」。這是他的舊身份——那個相信真理自會說話的特斯拉——的象徵性死亡。
+        <div class="hist-quote">「他用我的電流殺死了無辜的生命，然後說是我的錯。那一刻我才明白，我不是在和科學競爭——我在和人性最醜陋的一面戰鬥。」</div>
+        <span class="charge-badge neg">－－ 舊身份死亡</span>
+      </div>
+    </div>
+
+    <!-- Stage 9: Reward (World's Fair) -->
+    <div class="journey-stage">
+      <div class="journey-meta">
+        <div class="journey-icon-box">🏆</div>
+        <div class="journey-stage-name">⑨ 獲得獎賞</div>
+        <div class="journey-stage-en">Reward · 世博會勝利</div>
+        <div class="charge-indicator">
+          <div class="ci-dot" style="background:#4ade80"></div>
+          <span style="color:#4ade80">電荷：＋＋＋</span>
+        </div>
+      </div>
+      <div class="journey-historical">
+        <div class="label">歷史記錄</div>
+        1893 年，威斯汀豪斯-特斯拉陣營以創紀錄的低價贏得芝加哥世博會照明合約。當 10 萬顆燈泡在開幕夜同時亮起，全場鴉雀無聲。總統克里夫蘭親自按下開關。觀眾流淚了。
+      </div>
+      <div class="journey-dramatic">
+        <div class="label">戲劇化轉化</div>
+        英雄旅程中，獎賞的功能是給予真正的力量——不是外在的勝利，而是對自身使命的確認。世博會的燈光不只是照亮了場地，而是照亮了一個重建後的特斯拉信念：也許真理確實會說話，只是需要時間。
+        <div class="hist-quote">「那晚，我站在夜色裡，看著我的光點亮了整個世界。我想起了在布達佩斯公園用棍子畫在沙地上的那個圖。它現在就在這裡，活著。」</div>
+        <span class="charge-badge flip">↻ 最大翻轉</span><span class="charge-badge pos">＋＋＋ 復活</span>
+      </div>
+    </div>
+
+    <!-- Stage 11: Resurrection -->
+    <div class="journey-stage">
+      <div class="journey-meta">
+        <div class="journey-icon-box">✨</div>
+        <div class="journey-stage-name">⑪ 復活</div>
+        <div class="journey-stage-en">Resurrection · 尼加拉瓜瀑布</div>
+        <div class="charge-indicator">
+          <div class="ci-dot" style="background:#c9a84c"></div>
+          <span style="color:#c9a84c">電荷：勝而憂</span>
+        </div>
+      </div>
+      <div class="journey-historical">
+        <div class="label">歷史記錄</div>
+        1895 年，尼加拉瓜瀑布水力發電站啟用，使用特斯拉的交流電系統，為水牛城送去了電力。「電流大戰」正式宣告結束。愛迪生後來私下承認：「我一生中最大的錯誤，是在直流電上浪費了太多時間。」
+      </div>
+      <div class="journey-dramatic">
+        <div class="label">戲劇化轉化</div>
+        英雄旅程的「復活」往往不是純粹的喜悅，而是一種成熟後的複雜情感。特斯拉看著尼加拉瓜瀑布的電流奔湧而出，他想起了什麼？——那個少年夢想：有一天，我要馴服這條瀑布。
+        <div class="hist-quote">「人們慶賀著勝利。而我只是想，原來那個在布達佩斯沙地上的圖，終於找到了它真正的大小。」</div>
+        <span class="charge-badge pos">＋ 歷史性勝利</span><span class="charge-badge neu">○ 孤獨的代價</span>
+      </div>
+    </div>
+
+    <!-- Stage 12: Return with Elixir -->
+    <div class="journey-stage">
+      <div class="journey-meta">
+        <div class="journey-icon-box">🌍</div>
+        <div class="journey-stage-name">⑫ 帶仙丹歸來</div>
+        <div class="journey-stage-en">Return with the Elixir</div>
+        <div class="charge-indicator">
+          <div class="ci-dot" style="background:#c9a84c"></div>
+          <span style="color:#c9a84c">電荷：超越正負</span>
+        </div>
+      </div>
+      <div class="journey-historical">
+        <div class="label">歷史記錄</div>
+        晚年，特斯拉在紐約旅館獨自去世，一無所有，但他的 AC 系統成為整個現代電網的基礎。他的 300 多項專利今日仍在使用。他的名字現在是電動車公司的品牌。
+      </div>
+      <div class="journey-dramatic">
+        <div class="label">戲劇化轉化</div>
+        最好的歷史「仙丹」不是「他成功了」，而是一個能讓觀眾帶走的信念轉化。特斯拉的仙丹是：<strong style="color:var(--hist-accent)">一個想法的生命，可以比一個人的生命更長。</strong>
+        <div class="hist-quote">「如果你想了解宇宙，就用能量、頻率和振動的角度去思考。」— Nikola Tesla</div>
+        <div style="font-size:12px;color:#5a7080;margin-top:12px">⟶ 總結代理人的任務：讓這個歷史人物的終點，成為觀眾自己的「新起點」。一個真正完成的英雄旅程，讓觀眾在離開時感受到一種奇異的承繼感——彷彿他也繼承了那份使命。</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+</div>
+
+<!-- ══ SCRIPT ══ -->
+<script>
+function switchTo(id) {
+  document.querySelectorAll('.scenario-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('s-' + id).classList.add('active');
+  document.querySelector('.nav-tab.' + id).classList.add('active');
+  window.scrollTo({top: document.querySelector('.global-nav').offsetHeight + 80, behavior:'smooth'});
+}
+// pill clicks
+document.querySelectorAll('.pill').forEach(p => {
+  p.addEventListener('click', () => {
+    const id = p.classList[1].replace('pill-', '');
+    switchTo(id);
+  });
+});
+</script>
+</body>
+</html>
